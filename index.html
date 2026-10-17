@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aarav (Vibes) | Portfolio</title>
+<meta name="description" content="Aarav (Vibes): gamer, community builder and Roblox roleplay fan. Projects, favourite games and links.">
+<meta name="theme-color" content="#0b0507">
+<style>
+  :root{
+    --bg:#0b0507;
+    --bg2:#14080c;
+    --red:#e11d2e;
+    --red-hi:#ff4d5e;
+    --red-deep:#7a0a16;
+    --text:#f6eef0;
+    --muted:#b9a7ab;
+    --card:rgba(255,255,255,.04);
+    --border:rgba(255,255,255,.09);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;
+    background:
+      radial-gradient(900px 600px at 85% -10%,rgba(225,29,46,.28),transparent 60%),
+      radial-gradient(700px 500px at -10% 30%,rgba(122,10,22,.35),transparent 60%),
+      radial-gradient(800px 600px at 60% 110%,rgba(225,29,46,.18),transparent 60%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  /* NAV */
+  nav{
+    position:sticky;top:0;z-index:20;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    background:rgba(11,5,7,.65);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{font-weight:800;letter-spacing:.5px;font-size:1.15rem}
+  .logo span{background:linear-gradient(90deg,var(--red-hi),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .nav-links{display:flex;gap:26px;font-size:.95rem;color:var(--muted)}
+  .nav-links a:hover{color:#fff}
+  @media(max-width:640px){.nav-links{gap:16px;font-size:.85rem}}
+
+  /* HERO */
+  .hero{padding:110px 0 90px;text-align:center;position:relative}
+  .badge{
+    display:inline-block;padding:7px 16px;border-radius:999px;
+    border:1px solid rgba(255,77,94,.4);
+    background:rgba(225,29,46,.12);
+    color:var(--red-hi);font-size:.85rem;font-weight:600;letter-spacing:.4px;
+  }
+  h1{
+    font-size:clamp(2.8rem,9vw,5.6rem);
+    line-height:1.05;font-weight:900;margin:22px 0 18px;letter-spacing:-1.5px;
+  }
+  h1 .grad{
+    background:linear-gradient(100deg,#fff 0%,var(--red-hi) 45%,var(--red) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .tagline{max-width:600px;margin:0 auto 34px;color:var(--muted);font-size:1.15rem}
+  .btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:14px 28px;border-radius:14px;font-weight:700;font-size:1rem;
+    transition:transform .2s,box-shadow .2s,background .2s;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--red-hi),var(--red) 55%,var(--red-deep));
+    box-shadow:0 10px 30px -8px rgba(225,29,46,.7);
+  }
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 36px -8px rgba(225,29,46,.9)}
+  .btn-ghost{border:1px solid var(--border);background:var(--card)}
+  .btn-ghost:hover{transform:translateY(-3px);border-color:rgba(255,77,94,.5);background:rgba(225,29,46,.1)}
+
+  /* SECTIONS */
+  section{padding:80px 0}
+  .eyebrow{color:var(--red-hi);font-weight:700;font-size:.85rem;letter-spacing:2px;text-transform:uppercase}
+  h2{font-size:clamp(1.9rem,5vw,2.8rem);font-weight:800;margin:8px 0 14px;letter-spacing:-.5px}
+  .lead{color:var(--muted);max-width:640px;font-size:1.05rem}
+
+  /* ABOUT */
+  .about-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:34px;margin-top:34px;align-items:start}
+  @media(max-width:800px){.about-grid{grid-template-columns:1fr}}
+  .panel{
+    background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px;
+  }
+  .panel p{color:#dccfd2;margin-bottom:14px}
+  .panel p:last-child{margin-bottom:0}
+  .skills{display:flex;flex-wrap:wrap;gap:10px}
+  .skill{
+    padding:9px 16px;border-radius:999px;font-size:.92rem;font-weight:600;
+    background:linear-gradient(135deg,rgba(225,29,46,.22),rgba(122,10,22,.2));
+    border:1px solid rgba(255,77,94,.3);
+  }
+  .panel h3{margin-bottom:16px;font-size:1.05rem}
+
+  /* PROJECTS */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:26px;margin-top:38px}
+  .card{
+    position:relative;border-radius:24px;padding:32px;overflow:hidden;
+    background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
+    border:1px solid var(--border);
+    transition:transform .25s,border-color .25s;
+  }
+  .card::before{
+    content:"";position:absolute;top:-90px;right:-90px;width:240px;height:240px;border-radius:50%;
+    background:radial-gradient(circle,rgba(225,29,46,.45),transparent 70%);
+    transition:opacity .25s;opacity:.7;
+  }
+  .card:hover{transform:translateY(-6px);border-color:rgba(255,77,94,.5)}
+  .card:hover::before{opacity:1}
+  .card > *{position:relative}
+  .role{
+    display:inline-block;font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--red-hi);margin-bottom:10px;
+  }
+  .card h3{font-size:1.7rem;margin-bottom:10px}
+  .card p{color:var(--muted);margin-bottom:22px}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+  .tag{font-size:.78rem;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.07);color:#e6d9dc}
+
+  /* GAMES */
+  .games{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;margin-top:38px}
+  .game{
+    padding:26px;border-radius:20px;background:var(--card);border:1px solid var(--border);
+    transition:transform .25s,border-color .25s,background .25s;
+  }
+  .game:hover{transform:translateY(-5px);border-color:rgba(255,77,94,.45);background:rgba(225,29,46,.07)}
+  .icon{
+    width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:1.6rem;margin-bottom:16px;
+    background:linear-gradient(135deg,var(--red-hi),var(--red-deep));
+    box-shadow:0 8px 20px -6px rgba(225,29,46,.6);
+  }
+  .game h3{font-size:1.1rem;margin-bottom:6px}
+  .game p{color:var(--muted);font-size:.93rem}
+
+  /* LINKS */
+  .links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:38px}
+  .link{
+    display:flex;align-items:center;gap:16px;padding:22px 24px;border-radius:18px;
+    background:var(--card);border:1px solid var(--border);
+    transition:transform .25s,border-color .25s,background .25s;
+  }
+  .link:hover{transform:translateY(-4px);border-color:rgba(255,77,94,.5);background:rgba(225,29,46,.1)}
+  .link .icon{margin:0;flex:none}
+  .link strong{display:block;font-size:1.05rem}
+  .link span{color:var(--muted);font-size:.88rem}
+
+  footer{padding:50px 0 60px;text-align:center;color:var(--muted);font-size:.9rem;border-top:1px solid var(--border);margin-top:40px}
+  footer b{color:var(--red-hi)}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a href="#top" class="logo">AARAV<span>.</span>VIBES</a>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#games">Games</a>
+      <a href="#contact">Find me</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <span class="badge">● Gamer · Community Builder · Roblox Fan</span>
+    <h1>Hi, I'm <span class="grad">Aarav</span></h1>
+    <p class="tagline">Also known as Vibes. I love videogames, I build and lead Roblox roleplay communities, and I take pride in getting my spelling, punctuation and grammar right.</p>
+    <div class="btns">
+      <a class="btn btn-primary" href="#projects">See my projects</a>
+      <a class="btn btn-ghost" href="#contact">Find me online</a>
+    </div>
+  </div>
+</header>
+
+<section id="about">
+  <div class="wrap reveal">
+    <div class="eyebrow">About me</div>
+    <h2>Games, communities and good writing</h2>
+    <div class="about-grid">
+      <div class="panel">
+        <p>Videogames are my biggest passion, especially Roblox roleplay games. I love the ones that recreate real life, like UK restaurants, airlines and schools, because you get to work as a team and play a proper role.</p>
+        <p>I'm also strong at SPaG (spelling, punctuation and grammar), so the announcements, rules and messages in the communities I help run are clear and well written.</p>
+      </div>
+      <div class="panel">
+        <h3>What I'm good at</h3>
+        <div class="skills">
+          <span class="skill">Community building</span>
+          <span class="skill">Leadership</span>
+          <span class="skill">Roleplay</span>
+          <span class="skill">SPaG</span>
+          <span class="skill">Teamwork</span>
+          <span class="skill">Gaming</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap reveal">
+    <div class="eyebrow">Experience</div>
+    <h2>Projects I'm part of</h2>
+    <p class="lead">Roblox communities where I take on leadership roles. Come and join us on Discord.</p>
+    <div class="cards">
+      <article class="card">
+        <span class="role">Chairman</span>
+        <h3>🍗 KFC Chairman</h3>
+        <p>A UK restaurant roleplay community on Roblox. Staff work shifts, serve customers and keep the restaurant running like the real thing.</p>
+        <div class="tags"><span class="tag">Roblox</span><span class="tag">Restaurant RP</span><span class="tag">Leadership</span></div>
+        <a class="btn btn-primary" href="https://discord.gg/v7GWdmR7Jd" target="_blank" rel="noopener">Join the Discord →</a>
+      </article>
+      <article class="card">
+        <span class="role">Headteacher</span>
+        <h3>🎓 Headteacher</h3>
+        <p>A school roleplay community on Roblox. Students and staff take part in lessons, rules and school life led by the head.</p>
+        <div class="tags"><span class="tag">Roblox</span><span class="tag">School RP</span><span class="tag">Leadership</span></div>
+        <a class="btn btn-primary" href="https://discord.gg/4M5FFZ6EZ4" target="_blank" rel="noopener">Join the Discord →</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="games">
+  <div class="wrap reveal">
+    <div class="eyebrow">Favourites</div>
+    <h2>What I love to play</h2>
+    <p class="lead">Roblox roleplay games where everyone has a job to do.</p>
+    <div class="games">
+      <div class="game"><div class="icon">🍔</div><h3>RP Restaurants</h3><p>UK-based restaurants where you can be a chef, cashier or manager.</p></div>
+      <div class="game"><div class="icon">✈️</div><h3>RP Airlines</h3><p>Fly as crew or passengers, with check-in, boarding and full flights.</p></div>
+      <div class="game"><div class="icon">🏫</div><h3>RP Schools</h3><p>Lessons, teachers, rules and everything that goes with school life.</p></div>
+      <div class="game"><div class="icon">🎮</div><h3>And much more</h3><p>If it's a good game with a great community, I'm probably playing it.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap reveal">
+    <div class="eyebrow">Socials</div>
+    <h2>Find me online</h2>
+    <p class="lead">Follow me or come and say hi.</p>
+    <div class="links">
+      <a class="link" href="https://www.roblox.com/users/3175667757/profile" target="_blank" rel="noopener"><div class="icon">🎮</div><div><strong>Roblox</strong><span>Add me and play</span></div></a>
+      <a class="link" href="https://www.tiktok.com/@aarav_vibezz" target="_blank" rel="noopener"><div class="icon">🎵</div><div><strong>TikTok</strong><span>@aarav_vibezz</span></div></a>
+      <a class="link" href="https://www.youtube.com/@officialvibesyt12" target="_blank" rel="noopener"><div class="icon">▶️</div><div><strong>YouTube</strong><span>@officialvibesyt12</span></div></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Made by <b>Aarav (Vibes)</b> · © 2026</div>
+</footer>
+
+<script>
+  const els = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    els.forEach(el => io.observe(el));
+  } else {
+    els.forEach(el => el.classList.add('in'));
+  }
+</script>
+</body>
+</html>
