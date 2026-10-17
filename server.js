@@ -94,6 +94,24 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url === '/favicon.svg') {
+    const faviconFile = path.join(__dirname, 'favicon.svg');
+
+    return fs.readFile(faviconFile, (err, data) => {
+      if (err) {
+        res.writeHead(404);
+        return res.end('Favicon not found');
+      }
+
+      res.writeHead(200, {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'public, max-age=3600'
+      });
+
+      res.end(data);
+    });
+  }
+
   fs.readFile(FILE, (err, data) => {
     if (err) {
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
