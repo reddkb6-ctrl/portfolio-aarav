@@ -115,6 +115,8 @@ if (url === '/favicon.svg') {
 
   if (url === '/favicon.svg') {
     const faviconFile = path.join(__dirname, 'favicon.svg');
+    console.log('Favicon path:', faviconFile);
+console.log('Favicon exists:', fs.existsSync(faviconFile));
 
     return fs.readFile(faviconFile, (err, data) => {
       if (err) {
