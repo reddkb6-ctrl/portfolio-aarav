@@ -62,6 +62,13 @@ async function getProfile() {
 const server = http.createServer(async (req, res) => {
   const url = (req.url || '/').split('?')[0];
 
+  // Discord domain verification: Discord checks this file to confirm the site is yours.
+  if (url === '/.well-known/discord') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('dh=4e87b56ab4882300b0762ef8c56edc5818f69f2d');
+    return;
+  }
+
   if (url === '/avatar.png') {
     try {
       const buf = await getAvatar();
