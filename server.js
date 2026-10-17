@@ -73,7 +73,7 @@ if (url === '/favicon.svg') {
 
   return fs.readFile(faviconFile, (err, data) => {
     if (err) {
-      console.error('Favicon error:', err);
+      console.error('Favicon error:', err.code, err.message);
       res.writeHead(404, {
         'Content-Type': 'text/plain; charset=utf-8'
       });
