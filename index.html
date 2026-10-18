@@ -10,6 +10,8 @@
   <title>Aarav | Personal Portfolio</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.26/dist/lenis.css">
+  <link rel="stylesheet" href="/reviews.css">
+  <script src="/reviews.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -203,7 +205,7 @@
       <a href="#home" class="logo" aria-label="Aarav home"><img class="logo-avatar" src="data:image/webp;base64,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" alt="" width="38" height="38" decoding="async">Aarav</a>
       <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">Menu ☰</button>
       <nav class="nav" id="site-nav" aria-label="Main navigation">
-        <a href="#about">About</a><a href="#games">Games</a><a href="#roblox">Roblox</a><a href="#projects">Experience</a><a href="#interests">Interests</a><a href="#socials">Socials</a>
+        <a href="#about">About</a><a href="#games">Games</a><a href="#roblox">Roblox</a><a href="#projects">Experience</a><a href="#interests">Interests</a><a href="#reviews">Reviews</a><a href="#socials">Socials</a>
       </nav>
     </header>
     <div class="aarav-card-wrap" aria-label="Aarav profile card">
@@ -297,6 +299,10 @@
             <p>I enjoy supporting people, helping teams work well together and keeping communities organised.</p>
           </article>
         </div>
+      </section>
+      <section id="reviews" class="reveal">
+        <div class="section-head"><div><h2>Reviews</h2></div></div>
+        <div id="reviews-app" class="reviews-app" aria-busy="true"></div>
       </section>
       <section id="socials" class="reveal">
         <div class="section-kicker">Stay connected</div><h2>Socials</h2><p class="text">Choose a platform below, or find me directly on Discord.</p>
