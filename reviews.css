@@ -76,3 +76,6 @@
 .moderation-delete-button:hover,.moderation-delete-button:focus-visible{border-color:rgba(255,126,145,.65);background:rgba(255,86,111,.13);color:#ffc2cb}
 .moderation-action-button[disabled],.moderation-delete-button[disabled],.moderation-logout-button[disabled],.moderation-login-button[disabled]{opacity:.62;cursor:wait}
 @media(max-width:600px){.moderation-content{padding:0 13px 14px}.moderation-login-form{grid-template-columns:1fr}.moderation-login-button{width:100%;justify-content:center}.moderation-toolbar{align-items:flex-start}.moderation-review-actions>*{flex:1 1 auto;justify-content:center}}
+
+/* Respect links intentionally hidden by the site-content editor. */
+.links .link[hidden],.project-links[hidden],.project-links a[hidden],.discord-profile-actions a[hidden]{display:none!important}
