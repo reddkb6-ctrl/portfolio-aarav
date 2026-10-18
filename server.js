@@ -933,19 +933,43 @@ const server = http.createServer(async function (req, res) {
     }
   }
 
-  if (pathname === '/reviews.css' || pathname === '/reviews.js') {
-    const asset = pathname === '/reviews.css'
-      ? { file: path.join(__dirname, 'reviews.css'), type: 'text/css; charset=utf-8' }
-      : { file: path.join(__dirname, 'reviews.js'), type: 'text/javascript; charset=utf-8' };
-    return fs.readFile(asset.file, function (err, data) {
+  const assetRoutes = {
+    '/reviews.css': { file: 'reviews.css', type: 'text/css; charset=utf-8', cache: 'public, max-age=300' },
+    '/reviews.js': { file: 'reviews.js', type: 'text/javascript; charset=utf-8', cache: 'public, max-age=300' },
+    '/admin.css': { file: 'admin.css', type: 'text/css; charset=utf-8', cache: 'no-store' },
+    '/admin.js': { file: 'admin.js', type: 'text/javascript; charset=utf-8', cache: 'no-store' },
+    '/site-content.js': { file: 'site-content.js', type: 'text/javascript; charset=utf-8', cache: 'no-store' }
+  };
+  if (Object.prototype.hasOwnProperty.call(assetRoutes, pathname)) {
+    const asset = assetRoutes[pathname];
+    return fs.readFile(path.join(__dirname, asset.file), function (err, data) {
       if (err) {
-        console.error('Review asset read failed:', err.code || 'I/O error');
+        console.error('Website asset read failed:', err.code || 'I/O error');
         return send(req, res, 404, 'Not found', 'text/plain; charset=utf-8', {
           'Cache-Control': 'no-store'
         });
       }
       return send(req, res, 200, data, asset.type, {
-        'Cache-Control': 'public, max-age=300'
+        'Cache-Control': asset.cache
+      });
+    });
+  }
+
+  if ((pathname === '/admin' || pathname === '/admin/' || pathname === '/admin.html') &&
+      (req.method === 'GET' || req.method === 'HEAD')) {
+    return fs.readFile(path.join(__dirname, 'admin.html'), 'utf8', function (err, html) {
+      if (err) {
+        console.error('Admin page read failed:', err.code || 'I/O error');
+        return send(req, res, 404, 'Admin page not found', 'text/plain; charset=utf-8', {
+          'Cache-Control': 'no-store'
+        });
+      }
+      const withSiteContentScript = html.replace(/<\\/body>/i, '  <script src="/site-content.js" defer></script>\\n</body>');
+    const securedHtml = withSiteContentScript.replace(/<(script|style)\\b(?![^>]*\\bnonce\\s*=)/gi,
+        '<$1 nonce="' + nonce + '"');
+      return send(req, res, 200, securedHtml, 'text/html; charset=utf-8', {
+        'Cache-Control': 'no-store',
+        'X-Robots-Tag': 'noindex, nofollow, noarchive'
       });
     });
   }
