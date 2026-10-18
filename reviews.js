@@ -150,7 +150,6 @@
   moderationPassword.name = 'password';
   moderationPassword.autocomplete = 'current-password';
   moderationPassword.required = true;
-  moderationPassword.minLength = 16;
   moderationPassword.placeholder = 'Moderator password';
   moderationLoginForm.appendChild(field('review-field', 'Moderator password', moderationPassword.id, moderationPassword));
   var moderationLoginButton = make('button', 'btn btn-main moderation-login-button', 'Sign in');
