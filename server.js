@@ -178,6 +178,103 @@ async function readReviews() {
   }
 }
 
+async function readSiteContent() {
+  try {
+    const raw = await fs.promises.readFile(SITE_CONTENT_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Website content storage has an invalid format.');
+    }
+    return Object.keys(SITE_CONTENT_SCHEMA).reduce(function (result, key) {
+      const value = parsed[key];
+      const schema = SITE_CONTENT_SCHEMA[key];
+      result[key] = typeof value === 'string' ? value : schema.default;
+      return result;
+    }, {});
+  } catch (error) {
+    if (error && error.code === 'ENOENT') {
+      return Object.keys(SITE_CONTENT_SCHEMA).reduce(function (result, key) {
+        result[key] = SITE_CONTENT_SCHEMA[key].default;
+        return result;
+      }, {});
+    }
+    throw error;
+  }
+}
+
+function normaliseSiteContent(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    const error = new Error('Website content must be an object.');
+    error.statusCode = 400;
+    throw error;
+  }
+  const unknownKeys = Object.keys(input).filter(function (key) {
+    return !Object.prototype.hasOwnProperty.call(SITE_CONTENT_SCHEMA, key);
+  });
+  if (unknownKeys.length) {
+    const error = new Error('The update contains unsupported website fields.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return Object.keys(SITE_CONTENT_SCHEMA).reduce(function (result, key) {
+    const schema = SITE_CONTENT_SCHEMA[key];
+    const value = Object.prototype.hasOwnProperty.call(input, key) ? input[key] : schema.default;
+    if (typeof value !== 'string') {
+      const error = new Error('Every website field must be text.');
+      error.statusCode = 400;
+      throw error;
+    }
+    const clean = value.replace(/\r\n?/g, '\n').trim();
+    if (clean.length > schema.max) {
+      const error = new Error('A website field exceeds its character limit.');
+      error.statusCode = 400;
+      throw error;
+    }
+    if (schema.type === 'url' && clean) {
+      let url;
+      try {
+        url = new URL(clean);
+      } catch (_) {
+        const error = new Error('Website links must be valid HTTPS URLs.');
+        error.statusCode = 400;
+        throw error;
+      }
+      if (url.protocol !== 'https:' || url.username || url.password) {
+        const error = new Error('Website links must use HTTPS and cannot contain credentials.');
+        error.statusCode = 400;
+        throw error;
+      }
+      result[key] = url.href;
+    } else {
+      result[key] = clean;
+    }
+    return result;
+  }, {});
+}
+
+let siteContentWriteQueue = Promise.resolve();
+function saveSiteContent(content) {
+  const operation = siteContentWriteQueue.then(async function () {
+    const directory = path.dirname(SITE_CONTENT_FILE);
+    await fs.promises.mkdir(directory, { recursive: true });
+    const temporaryPath = SITE_CONTENT_FILE + '.' + randomBytes(8).toString('hex') + '.tmp';
+    try {
+      await fs.promises.writeFile(temporaryPath, JSON.stringify(content, null, 2), {
+        encoding: 'utf8',
+        mode: 0o600
+      });
+      await fs.promises.rename(temporaryPath, SITE_CONTENT_FILE);
+    } catch (error) {
+      await fs.promises.unlink(temporaryPath).catch(function () {});
+      throw error;
+    }
+    return content;
+  });
+  siteContentWriteQueue = operation.catch(function () {});
+  return operation;
+}
+
 function withReviewWriteLock(operation) {
   const result = reviewWriteQueue.then(operation, operation);
   reviewWriteQueue = result.catch(function () {});
