@@ -525,9 +525,9 @@ const server = http.createServer(async function (req, res) {
   const nonce = randomBytes(18).toString('base64');
   setSecurityHeaders(res, nonce);
 
-  if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
+  if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST' && req.method !== 'DELETE') {
     return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
-      Allow: 'GET, HEAD, POST',
+      Allow: 'GET, HEAD, POST, DELETE',
       'Cache-Control': 'no-store'
     });
   }
@@ -543,9 +543,16 @@ const server = http.createServer(async function (req, res) {
     });
   }
 
-  if (req.method === 'POST' && pathname !== '/api/reviews') {
+  const moderationReviewPath = pathname.match(/^\/api\/moderation\/reviews\/([a-f0-9]{16})(?:\/(actions))?$/);
+  const allowedPostPath = pathname === '/api/reviews' ||
+    pathname === '/api/moderation/login' ||
+    pathname === '/api/moderation/logout' ||
+    Boolean(moderationReviewPath && moderationReviewPath[2] === 'actions');
+  const allowedDeletePath = Boolean(moderationReviewPath && !moderationReviewPath[2]);
+  if ((req.method === 'POST' && !allowedPostPath) ||
+      (req.method === 'DELETE' && !allowedDeletePath)) {
     return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
-      Allow: 'GET, HEAD',
+      Allow: 'GET, HEAD, POST, DELETE',
       'Cache-Control': 'no-store'
     });
   }
