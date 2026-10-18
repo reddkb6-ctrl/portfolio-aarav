@@ -722,7 +722,7 @@ const server = http.createServer(async function (req, res) {
       return sendJson(req, res, 401, { error: 'Sign in to manage website content.' });
     }
     try {
-      return sendJson(req, res, 200, { content: await readSiteContent() });
+      return sendJson(req, res, 200, { content: await readSiteContent(), defaults: defaultSiteContent() });
     } catch (error) {
       console.error('Admin website content could not be read:', error && error.name ? error.name : 'Error');
       return sendJson(req, res, 500, { error: 'Website content could not be loaded.' });
