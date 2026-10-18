@@ -218,14 +218,34 @@
       updateBar();window.addEventListener('scroll',updateBar,{passive:true});
       toggle.addEventListener('click',function(){var open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');toggle.textContent=open?'Close ✕':'Menu ☰'});
       function closeMenu(){nav.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open navigation');toggle.textContent='Menu ☰'}
-      nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',closeMenu)});
+      var pendingActiveId='';
+      nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){
+        var href=a.getAttribute('href');
+        if(href&&href.charAt(0)==='#'){
+          var target=document.getElementById(href.slice(1));
+          if(target){pendingActiveId=target.id;setActive(pendingActiveId)}
+        }
+        closeMenu();
+      })});
       document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu()});
       document.addEventListener('click',function(e){if(nav.classList.contains('open')&&!nav.contains(e.target)&&!toggle.contains(e.target))closeMenu()});
       window.addEventListener('resize',function(){if(window.innerWidth>760)closeMenu()});
       var sections=Array.prototype.slice.call(document.querySelectorAll('main section[id]'));
-      function setActive(id){nav.querySelectorAll('a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+id)})}
+      function setActive(id){nav.querySelectorAll('a').forEach(function(a){var active=a.getAttribute('href')==='#'+id;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')})}
       function updateActive(){
         var line=160,current=null;
+        if(pendingActiveId){
+          var target=document.getElementById(pendingActiveId);
+          var targetRect=target&&target.getBoundingClientRect();
+          var atBottom=window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4;
+          var targetIsLast=sections.length&&pendingActiveId===sections[sections.length-1].id;
+          if(targetRect&&((targetRect.top<=line&&targetRect.bottom>line)||(atBottom&&targetIsLast))){
+            pendingActiveId='';
+          }else{
+            setActive(pendingActiveId);
+            return;
+          }
+        }
         sections.forEach(function(s){if(s.getBoundingClientRect().top<=line)current=s});
         if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4&&sections.length)current=sections[sections.length-1];
         setActive(current?current.id:'');
