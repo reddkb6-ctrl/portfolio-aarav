@@ -142,11 +142,17 @@
       document.addEventListener('click',function(e){if(nav.classList.contains('open')&&!nav.contains(e.target)&&!toggle.contains(e.target))closeMenu()});
       window.addEventListener('resize',function(){if(window.innerWidth>760)closeMenu()});
       var sections=Array.prototype.slice.call(document.querySelectorAll('main section[id]'));
+      function setActive(id){nav.querySelectorAll('a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+id)})}
+      function updateActive(){
+        var line=160,current=null;
+        sections.forEach(function(s){if(s.getBoundingClientRect().top<=line)current=s});
+        if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4&&sections.length)current=sections[sections.length-1];
+        setActive(current?current.id:'');
+      }
+      updateActive();window.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
       if('IntersectionObserver' in window){
         var revealObserver=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){entry.target.classList.add('visible');revealObserver.unobserve(entry.target)}})},{threshold:.12});
         document.querySelectorAll('.reveal').forEach(function(el){revealObserver.observe(el)});
-        var navObserver=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){nav.querySelectorAll('a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+entry.target.id)})}})},{rootMargin:'-25% 0px -60% 0px',threshold:0});
-        sections.forEach(function(s){navObserver.observe(s)});
       }else{document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('visible')})}
       var fmt=function(n){return Number(n).toLocaleString('en-GB')};
       fetch('/api/roblox').then(function(r){if(!r.ok)throw new Error('Roblox profile endpoint unavailable');return r.json()}).then(function(d){if(!d)return;if(d.displayName)document.getElementById('rbx-name').textContent=d.displayName;if(d.username)document.getElementById('rbx-user').textContent=d.username;if(typeof d.friends==='number'||typeof d.followers==='number'){document.getElementById('rbx-friends').textContent=typeof d.friends==='number'?fmt(d.friends):'—';document.getElementById('rbx-followers').textContent=typeof d.followers==='number'?fmt(d.followers):'—';document.getElementById('rbx-stats').hidden=false}if(d.description)document.getElementById('rbx-bio').textContent=d.description}).catch(function(){});
