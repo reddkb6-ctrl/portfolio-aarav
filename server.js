@@ -14,6 +14,11 @@ const AVATAR_TTL = 10 * 60 * 1000;
 const PROFILE_TTL = 10 * 60 * 1000;
 const UPSTREAM_TIMEOUT_MS = 8000;
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const MAX_REVIEW_BODY_BYTES = 8192;
+const MAX_STORED_REVIEWS = 1000;
+const REVIEW_WINDOW_MS = 10 * 60 * 1000;
+const REVIEW_WINDOW_MAX = 3;
+const REVIEW_FILE = path.resolve(process.env.REVIEWS_FILE || path.join(__dirname, 'data', 'reviews.json'));
 const PROFILE_REFRESH_COOLDOWN_MS = 30 * 1000;
 
 let avatarCache = null;
@@ -21,6 +26,8 @@ let avatarAt = 0;
 let profileCache = null;
 let profileAt = 0;
 let profileLastRefreshAt = 0;
+let reviewWriteQueue = Promise.resolve();
+const reviewRateLimit = new Map();
 let avatarRequest = null;
 let profileRequest = null;
 
@@ -64,6 +71,170 @@ function send(req, res, status, body, contentType, extraHeaders) {
   res.setHeader('Content-Length', String(payload.length));
   if (req.method === 'HEAD') return res.end();
   return res.end(payload);
+}
+
+function sendJson(req, res, status, value, extraHeaders) {
+  const headers = Object.assign({ 'Cache-Control': 'no-store' }, extraHeaders || {});
+  return send(req, res, status, JSON.stringify(value), 'application/json; charset=utf-8', headers);
+}
+
+async function readJsonBody(req, maxBytes) {
+  const contentType = (req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  if (contentType !== 'application/json') {
+    const error = new Error('Content-Type must be application/json.');
+    error.statusCode = 415;
+    throw error;
+  }
+  const declaredLength = Number(req.headers['content-length'] || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    const error = new Error('Request body is too large.');
+    error.statusCode = 413;
+    throw error;
+  }
+
+  let bodyText = '';
+  let total = 0;
+  let tooLarge = false;
+  for await (const chunk of req) {
+    total += chunk.length;
+    if (total > maxBytes) {
+      tooLarge = true;
+      continue;
+    }
+    bodyText += chunk.toString('utf8');
+  }
+  if (tooLarge) {
+    const error = new Error('Request body is too large.');
+    error.statusCode = 413;
+    throw error;
+  }
+  try {
+    return JSON.parse(bodyText || '{}');
+  } catch (_) {
+    const error = new Error('Request body must be valid JSON.');
+    error.statusCode = 400;
+    throw error;
+  }
+}
+
+async function readReviews() {
+  try {
+    const raw = await fs.promises.readFile(REVIEW_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error('Review storage has an invalid format.');
+    return parsed;
+  } catch (error) {
+    if (error && error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+function withReviewWriteLock(operation) {
+  const result = reviewWriteQueue.then(operation, operation);
+  reviewWriteQueue = result.catch(function () {});
+  return result;
+}
+
+function saveReview(review) {
+  return withReviewWriteLock(async function () {
+    const reviews = await readReviews();
+    reviews.unshift(review);
+    const retained = reviews.slice(0, MAX_STORED_REVIEWS);
+    const directory = path.dirname(REVIEW_FILE);
+    await fs.promises.mkdir(directory, { recursive: true });
+    const temporaryPath = REVIEW_FILE + '.' + randomBytes(8).toString('hex') + '.tmp';
+    try {
+      await fs.promises.writeFile(temporaryPath, JSON.stringify(retained, null, 2), {
+        encoding: 'utf8',
+        mode: 0o600
+      });
+      await fs.promises.rename(temporaryPath, REVIEW_FILE);
+    } catch (error) {
+      await fs.promises.unlink(temporaryPath).catch(function () {});
+      throw error;
+    }
+    return retained;
+  });
+}
+
+function getReviewClientKey(req) {
+  const forwarded = String(req.headers['x-forwarded-for'] || '')
+    .split(',')
+    .map(function (item) { return item.trim(); })
+    .filter(Boolean);
+  return forwarded.length ? forwarded[forwarded.length - 1] : (req.socket.remoteAddress || 'unknown');
+}
+
+function consumeReviewRateLimit(key) {
+  const now = Date.now();
+  const recent = (reviewRateLimit.get(key) || []).filter(function (time) {
+    return now - time < REVIEW_WINDOW_MS;
+  });
+  if (recent.length >= REVIEW_WINDOW_MAX) {
+    reviewRateLimit.set(key, recent);
+    return Math.max(1, Math.ceil((REVIEW_WINDOW_MS - (now - recent[0])) / 1000));
+  }
+  recent.push(now);
+  reviewRateLimit.set(key, recent);
+  if (reviewRateLimit.size > 2000) {
+    reviewRateLimit.forEach(function (times, client) {
+      if (!times.some(function (time) { return now - time < REVIEW_WINDOW_MS; })) {
+        reviewRateLimit.delete(client);
+      }
+    });
+  }
+  return 0;
+}
+
+function cleanReviewName(value) {
+  let result = '';
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    result += code <= 31 || code === 127 ? ' ' : char;
+  }
+  return result.split(' ').filter(Boolean).join(' ').trim();
+}
+
+function cleanReviewComment(value) {
+  let result = '';
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    if (code === 13) {
+      result += String.fromCharCode(10);
+    } else if (code === 10 || code === 9 || (code >= 32 && code !== 127)) {
+      result += char;
+    }
+  }
+  return result.trim();
+}
+
+function normaliseReview(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    const error = new Error('Please complete the review form.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const name = typeof input.name === 'string' ? cleanReviewName(input.name) : '';
+  const comment = typeof input.comment === 'string' ? cleanReviewComment(input.comment) : '';
+  const rating = Number(input.rating);
+
+  if (!name || name.length > 50) {
+    const error = new Error('Enter a name between 1 and 50 characters.');
+    error.statusCode = 400;
+    throw error;
+  }
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    const error = new Error('Choose a rating from 1 to 5.');
+    error.statusCode = 400;
+    throw error;
+  }
+  if (comment.length > 600) {
+    const error = new Error('Comments must be 600 characters or fewer.');
+    error.statusCode = 400;
+    throw error;
+  }
+  return { name: name, rating: rating, comment: comment };
 }
 
 async function getJson(url) {
@@ -241,9 +412,9 @@ const server = http.createServer(async function (req, res) {
   const nonce = randomBytes(18).toString('base64');
   setSecurityHeaders(res, nonce);
 
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
+  if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
     return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
-      Allow: 'GET, HEAD',
+      Allow: 'GET, HEAD, POST',
       'Cache-Control': 'no-store'
     });
   }
@@ -257,6 +428,81 @@ const server = http.createServer(async function (req, res) {
     return send(req, res, 400, 'Bad request', 'text/plain; charset=utf-8', {
       'Cache-Control': 'no-store'
     });
+  }
+
+  if (req.method === 'POST' && pathname !== '/api/reviews') {
+    return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
+      Allow: 'GET, HEAD',
+      'Cache-Control': 'no-store'
+    });
+  }
+
+  if (pathname === '/api/reviews' && (req.method === 'GET' || req.method === 'HEAD')) {
+    try {
+      const reviews = await readReviews();
+      const total = reviews.length;
+      const average = total
+        ? Math.round((reviews.reduce(function (sum, review) { return sum + Number(review.rating || 0); }, 0) / total) * 10) / 10
+        : null;
+      return sendJson(req, res, 200, { reviews: reviews, total: total, average: average });
+    } catch (error) {
+      console.error('Reviews could not be read:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'Reviews are temporarily unavailable.' });
+    }
+  }
+
+  if (pathname === '/api/reviews' && req.method === 'POST') {
+    const origin = req.headers.origin;
+    if (origin) {
+      try {
+        if (new URL(origin).host !== req.headers.host) {
+          return sendJson(req, res, 403, { error: 'Cross-origin submissions are not allowed.' });
+        }
+      } catch (_) {
+        return sendJson(req, res, 403, { error: 'Invalid request origin.' });
+      }
+    }
+
+    let payload;
+    try {
+      payload = await readJsonBody(req, MAX_REVIEW_BODY_BYTES);
+    } catch (error) {
+      return sendJson(req, res, error.statusCode || 400, { error: error.message || 'Invalid request.' });
+    }
+
+    const retryAfter = consumeReviewRateLimit(getReviewClientKey(req));
+    if (retryAfter) {
+      return sendJson(req, res, 429, { error: 'Too many reviews submitted from this connection. Please try again later.' }, {
+        'Retry-After': String(retryAfter)
+      });
+    }
+
+    if (typeof payload.website === 'string' && payload.website.trim()) {
+      return sendJson(req, res, 201, { ok: true, review: null });
+    }
+
+    let fields;
+    try {
+      fields = normaliseReview(payload);
+    } catch (error) {
+      return sendJson(req, res, error.statusCode || 400, { error: error.message || 'Please check your review.' });
+    }
+
+    const review = {
+      id: randomBytes(8).toString('hex'),
+      name: fields.name,
+      rating: fields.rating,
+      comment: fields.comment,
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      await saveReview(review);
+      return sendJson(req, res, 201, { ok: true, review: review });
+    } catch (error) {
+      console.error('Review could not be saved:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'Your review could not be saved right now. Please try again later.' });
+    }
   }
 
   if (pathname === '/.well-known/discord') {
