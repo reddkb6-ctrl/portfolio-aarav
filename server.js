@@ -178,6 +178,13 @@ async function readReviews() {
   }
 }
 
+function defaultSiteContent() {
+  return Object.keys(SITE_CONTENT_SCHEMA).reduce(function (result, key) {
+    result[key] = SITE_CONTENT_SCHEMA[key].default;
+    return result;
+  }, {});
+}
+
 async function readSiteContent() {
   try {
     const raw = await fs.promises.readFile(SITE_CONTENT_FILE, 'utf8');
