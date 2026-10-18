@@ -28,23 +28,49 @@ const SITE_CONTENT_SCHEMA = {
   siteTitle: { type: 'text', max: 100, default: 'Aarav | Personal Portfolio' },
   siteDescription: { type: 'text', max: 240, default: "Aarav's personal portfolio — gaming, sports, music and creative projects." },
   heroName: { type: 'text', max: 50, default: 'Aarav.' },
+  heroEyebrow: { type: 'text', max: 100, default: 'A little about me' },
+  heroPrimaryCta: { type: 'text', max: 100, default: 'See my experience' },
+  heroPrimaryHref: { type: 'anchor', max: 30, default: '#projects' },
+  heroSecondaryCta: { type: 'text', max: 100, default: 'Find me online' },
+  heroSecondaryHref: { type: 'anchor', max: 30, default: '#socials' },
+  heroMetaOne: { type: 'text', max: 100, default: 'Roblox & gaming' },
+  heroMetaTwo: { type: 'text', max: 100, default: 'Music & singing' },
+  heroMetaThree: { type: 'text', max: 100, default: 'Building projects' },
   heroIntro: { type: 'text', max: 400, default: 'I play a lot of games, and I love music and singing. Welcome to my corner of the internet.' },
+  aboutKicker: { type: 'text', max: 100, default: 'A quick introduction' },
+  aboutHeading: { type: 'text', max: 100, default: 'About' },
   aboutText: { type: 'text', max: 700, default: "I'm Aarav. I enjoy gaming, sports and music, and I like bringing creative ideas to life. I'm also interested in teamwork, leadership and helping communities run smoothly." },
   aboutNoteTitle: { type: 'text', max: 100, default: "What I'm into" },
   aboutNoteText: { type: 'text', max: 400, default: 'Gaming, sports, music, creative projects and working with people.' },
+  gamesKicker: { type: 'text', max: 100, default: 'What I play' },
+  gamesHeading: { type: 'text', max: 100, default: 'Games' },
   gamesIntro: { type: 'text', max: 300, default: 'A few of the games I enjoy spending time on.' },
+  gameOneTitle: { type: 'text', max: 100, default: 'Roblox' },
+  gameOneDescription: { type: 'text', max: 300, default: 'Roleplay games based on UK restaurants, airlines and schools.' },
+  gameOneType: { type: 'text', max: 100, default: 'Roleplay' },
+  gameTwoTitle: { type: 'text', max: 100, default: 'Euro Truck Simulator 2' },
+  gameTwoDescription: { type: 'text', max: 300, default: 'Driving trucks across Europe.' },
+  gameTwoType: { type: 'text', max: 100, default: 'Driving simulator' },
+  gameThreeTitle: { type: 'text', max: 100, default: 'Fortnite' },
+  gameThreeDescription: { type: 'text', max: 300, default: 'Playing with friends.' },
+  gameThreeType: { type: 'text', max: 100, default: 'Battle royale' },
   kfcTag: { type: 'text', max: 140, default: 'Built by me · Restaurant roleplay' },
   kfcTitle: { type: 'text', max: 100, default: 'KFC' },
   kfcDescription: { type: 'text', max: 500, default: "A restaurant roleplay game that I built. I own KFC v1–2, which has 7k visits, and I'm developing v3." },
   kfcUrl: { type: 'url', max: 500, default: 'https://discord.gg/v7GWdmR7Jd' },
+  kfcLinkLabel: { type: 'text', max: 120, default: 'Join the Discord' },
   headteacherTag: { type: 'text', max: 140, default: 'Worked at · School roleplay' },
   headteacherTitle: { type: 'text', max: 100, default: 'Headteacher' },
   headteacherDescription: { type: 'text', max: 500, default: 'A school roleplay game where I\'m the headteacher. The campus is owned by Kyle, Harley Dyson and Simeon.' },
   headteacherUrl: { type: 'url', max: 500, default: 'https://discord.gg/4M5FFZ6EZ4' },
+  headteacherLinkLabel: { type: 'text', max: 120, default: 'Join the Discord' },
   avaraTag: { type: 'text', max: 140, default: 'Worked at · Custom airline' },
   avaraTitle: { type: 'text', max: 100, default: 'AVARA' },
   avaraDescription: { type: 'text', max: 500, default: 'I work as Head of Ground Operations at AVARA, a custom airline on Roblox.' },
   avaraUrl: { type: 'url', max: 500, default: 'https://discord.gg/V4qswt2qfe' },
+  avaraLinkLabel: { type: 'text', max: 120, default: 'Join AVARA on Discord' },
+  interestsKicker: { type: 'text', max: 100, default: 'Beyond the screen' },
+  interestsHeading: { type: 'text', max: 100, default: 'Interests & Skills' },
   interestsIntro: { type: 'text', max: 300, default: 'A few things I enjoy and skills I bring to my projects.' },
   gamingTitle: { type: 'text', max: 100, default: 'Gaming' },
   gamingDescription: { type: 'text', max: 300, default: 'I enjoy exploring different games, challenges and experiences.' },
@@ -54,7 +80,21 @@ const SITE_CONTENT_SCHEMA = {
   musicDescription: { type: 'text', max: 300, default: 'I enjoy singing and playing piano, and using music as a creative outlet.' },
   leadershipTitle: { type: 'text', max: 100, default: 'HR & Leadership' },
   leadershipDescription: { type: 'text', max: 300, default: 'I enjoy supporting people, helping teams work well together and keeping communities organised.' },
+  robloxKicker: { type: 'text', max: 100, default: 'Find me in-game' },
+  robloxHeading: { type: 'text', max: 100, default: 'My Roblox profile' },
+  robloxIntro: { type: 'text', max: 300, default: "Take a look at my Roblox profile and what I'm up to." },
+  experienceKicker: { type: 'text', max: 140, default: "Where I've worked and what I've built" },
+  experienceHeading: { type: 'text', max: 100, default: 'Experience' },
+  experienceIntro: { type: 'text', max: 300, default: "I built KFC myself, and I've worked at the other places below." },
+  socialsKicker: { type: 'text', max: 100, default: 'Stay connected' },
+  socialsHeading: { type: 'text', max: 100, default: 'Socials' },
   socialsIntro: { type: 'text', max: 300, default: 'Choose a platform below, or find me directly on Discord.' },
+  socialRobloxLabel: { type: 'text', max: 80, default: 'Roblox' },
+  socialDiscordLabel: { type: 'text', max: 80, default: 'Discord' },
+  socialTikTokLabel: { type: 'text', max: 80, default: 'TikTok' },
+  socialYouTubeLabel: { type: 'text', max: 80, default: 'YouTube' },
+  socialSnapchatLabel: { type: 'text', max: 80, default: 'Snapchat' },
+  socialSignalLabel: { type: 'text', max: 80, default: 'Signal' },
   discordProfileTitle: { type: 'text', max: 100, default: 'Find me on Discord' },
   discordProfileDescription: { type: 'text', max: 300, default: 'Open my profile or copy my user ID if you need it.' },
   discordProfileUrl: { type: 'url', max: 500, default: 'https://discord.com/users/1015328404494635038' },
@@ -238,7 +278,15 @@ function normaliseSiteContent(input) {
       error.statusCode = 400;
       throw error;
     }
-    if (schema.type === 'url' && clean) {
+    if (schema.type === 'anchor') {
+      const allowedAnchors = ['#about', '#games', '#roblox', '#projects', '#interests', '#reviews', '#socials'];
+      if (!allowedAnchors.includes(clean)) {
+        const error = new Error('Choose a valid on-page destination for the button.');
+        error.statusCode = 400;
+        throw error;
+      }
+      result[key] = clean;
+    } else if (schema.type === 'url' && clean) {
       let url;
       try {
         url = new URL(clean);
