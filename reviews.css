@@ -44,3 +44,35 @@
 @media(max-width:900px){.reviews-grid{grid-template-columns:1fr}.reviews-list{max-height:520px}}
 @media(max-width:760px){.review-form,.reviews-panel{padding:18px;border-radius:18px}.review-submit{width:100%;justify-content:center}.review-card-head{gap:8px}.review-stars{font-size:.82rem}}
 @media(prefers-reduced-motion:reduce){.review-card{animation:none!important}.rating-star{transition:none!important}.review-submit.is-loading svg{animation:none!important}}
+
+/* Owner-only site moderation */
+.moderation-panel{margin-top:17px;border:1px solid rgba(169,199,255,.13);border-radius:17px;background:rgba(10,14,30,.56);overflow:hidden}
+.moderation-panel-summary{display:flex;align-items:center;gap:10px;padding:15px 18px;color:var(--muted);font-size:.88rem;font-weight:500;cursor:pointer;list-style:none}
+.moderation-panel-summary::-webkit-details-marker{display:none}
+.moderation-panel-summary:after{content:"+";margin-left:auto;color:var(--blue-soft);font-size:1.1rem}
+.moderation-panel[open] .moderation-panel-summary:after{content:"−"}
+.moderation-panel-summary:hover,.moderation-panel-summary:focus-visible{color:var(--text)}
+.moderation-content{padding:0 18px 18px}
+.moderation-login-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:13px}
+.moderation-login-form[hidden],.moderation-dashboard[hidden]{display:none!important}
+.moderation-login-form .review-field{min-width:0}
+.moderation-login-form input[type="password"]{width:100%;border:1px solid rgba(169,199,255,.17);border-radius:12px;background:rgba(5,8,19,.58);color:var(--text);padding:12px 13px;font:400 .96rem var(--font);outline:none}
+.moderation-login-form input[type="password"]:focus{border-color:rgba(141,180,255,.62);box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+.moderation-login-button{min-height:43px;white-space:nowrap}
+.moderation-status{min-height:1.2em;margin-top:10px;color:var(--muted);font-size:.84rem;overflow-wrap:anywhere}
+.moderation-status:empty{display:none}
+.moderation-status.is-error{color:#ff9aa7}
+.moderation-status.is-success{color:#91e2bf}
+.moderation-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 13px}
+.moderation-count{color:var(--muted);font-size:.82rem}
+.moderation-logout-button{padding:8px 12px;font-size:.83rem}
+.moderation-list{display:flex;flex-direction:column;gap:10px;max-height:580px;overflow:auto;padding-right:3px}
+.moderation-review-card{background:rgba(255,255,255,.025);animation:none}
+.moderation-review-state{margin-top:8px;color:#91e2bf;font-size:.78rem}
+.moderation-review-state.is-hidden{color:#ffcf88}
+.moderation-review-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.moderation-action-button,.moderation-delete-button{min-height:36px;padding:8px 11px;font-size:.8rem}
+.moderation-delete-button{border-color:rgba(255,126,145,.3);color:#ff9aa7;background:rgba(255,86,111,.055)}
+.moderation-delete-button:hover,.moderation-delete-button:focus-visible{border-color:rgba(255,126,145,.65);background:rgba(255,86,111,.13);color:#ffc2cb}
+.moderation-action-button[disabled],.moderation-delete-button[disabled],.moderation-logout-button[disabled],.moderation-login-button[disabled]{opacity:.62;cursor:wait}
+@media(max-width:600px){.moderation-content{padding:0 13px 14px}.moderation-login-form{grid-template-columns:1fr}.moderation-login-button{width:100%;justify-content:center}.moderation-toolbar{align-items:flex-start}.moderation-review-actions>*{flex:1 1 auto;justify-content:center}}
