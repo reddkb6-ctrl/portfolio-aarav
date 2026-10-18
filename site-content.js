@@ -7,11 +7,30 @@
     if (node) node.textContent = value;
   }
 
+  function setLeadingText(selector, value) {
+    if (typeof value !== 'string') return;
+    var node = document.querySelector(selector);
+    if (!node) return;
+    var textNode = Array.prototype.slice.call(node.childNodes).find(function (child) {
+      return child.nodeType === 3 && child.nodeValue.trim();
+    });
+    if (textNode) textNode.nodeValue = ' ' + value;
+    else node.appendChild(document.createTextNode(value));
+  }
+
+  function setAnchor(selector, value) {
+    var node = document.querySelector(selector);
+    var allowed = ['#about', '#games', '#roblox', '#projects', '#interests', '#reviews', '#socials'];
+    if (!node || typeof value !== 'string') return;
+    if (allowed.includes(value)) node.setAttribute('href', value);
+  }
+
   function setProject(prefix, keyPrefix) {
     setText('.project-' + prefix + ' .project-tag', keyPrefix + 'Tag');
     setText('.project-' + prefix + ' h3', keyPrefix + 'Title');
     setText('.project-' + prefix + ' > p', keyPrefix + 'Description');
-    setUrl('.project-' + prefix + ' .project-links a', keyPrefix + 'Url', true);
+    setLeadingText('.project-' + prefix + ' .project-links a', content[keyPrefix + 'LinkLabel']);
+    setUrl('.project-' + prefix + ' .project-links a', content[keyPrefix + 'Url'], true);
   }
 
   function isSafeHttps(value) {
@@ -42,15 +61,56 @@
     if (!content || typeof content !== 'object') return;
     setText('title', content.siteTitle);
     setText('.hero h1 .gradient', content.heroName);
+    setLeadingText('.hero .eyebrow', content.heroEyebrow);
     setText('.hero .intro', content.heroIntro);
+    setLeadingText('.hero .btns a.btn-main', content.heroPrimaryCta);
+    setAnchor('.hero .btns a.btn-main', content.heroPrimaryHref);
+    setLeadingText('.hero .btns a.btn-line', content.heroSecondaryCta);
+    setAnchor('.hero .btns a.btn-line', content.heroSecondaryHref);
+    setLeadingText('.hero .hero-meta span:nth-child(1)', content.heroMetaOne);
+    setLeadingText('.hero .hero-meta span:nth-child(2)', content.heroMetaTwo);
+    setLeadingText('.hero .hero-meta span:nth-child(3)', content.heroMetaThree);
+    setLeadingText('#about .section-head .section-kicker', content.aboutKicker);
+    setText('#about .section-head h2', content.aboutHeading);
     setText('#about .about-grid > .text', content.aboutText);
     setText('.about-note strong', content.aboutNoteTitle);
     setText('.about-note p', content.aboutNoteText);
+    setLeadingText('#games > .section-kicker', content.gamesKicker);
+    setText('#games h2', content.gamesHeading);
     setText('#games > p.text', content.gamesIntro);
+    var gameKeys = [
+      ['gameOneTitle', 'gameOneDescription', 'gameOneType'],
+      ['gameTwoTitle', 'gameTwoDescription', 'gameTwoType'],
+      ['gameThreeTitle', 'gameThreeDescription', 'gameThreeType']
+    ];
+    var gameRows = document.querySelectorAll('#games .games > li');
+    gameKeys.forEach(function (keys, index) {
+      if (!gameRows[index]) return;
+      setText('#games .games > li:nth-child(' + (index + 1) + ') h3', content[keys[0]]);
+      setText('#games .games > li:nth-child(' + (index + 1) + ') p', content[keys[1]]);
+      setText('#games .games > li:nth-child(' + (index + 1) + ') .type', content[keys[2]]);
+    });
+    setLeadingText('#roblox > .section-kicker', content.robloxKicker);
+    setText('#roblox h2', content.robloxHeading);
+    setText('#roblox > p.text', content.robloxIntro);
+    setLeadingText('#projects .section-head .section-kicker', content.experienceKicker);
+    setText('#projects .section-head h2', content.experienceHeading);
+    setText('#projects .section-head .text', content.experienceIntro);
     setProject('kfc', 'kfc');
     setProject('headteacher', 'headteacher');
     setProject('operations', 'avara');
+    setLeadingText('#interests .section-head .section-kicker', content.interestsKicker);
+    setText('#interests .section-head h2', content.interestsHeading);
     setText('#interests .section-head .text', content.interestsIntro);
+    setLeadingText('#socials .section-kicker', content.socialsKicker);
+    setText('#socials h2', content.socialsHeading);
+    setText('#socials > p.text', content.socialsIntro);
+    setLeadingText('#socials .links a.link:nth-child(1)', content.socialRobloxLabel);
+    setLeadingText('#socials .links a.link:nth-child(2)', content.socialDiscordLabel);
+    setLeadingText('#socials .links a.link:nth-child(3)', content.socialTikTokLabel);
+    setLeadingText('#socials .links a.link:nth-child(4)', content.socialYouTubeLabel);
+    setLeadingText('#socials .links a.link:nth-child(5)', content.socialSnapchatLabel);
+    setLeadingText('#socials .links a.link:nth-child(6)', content.socialSignalLabel);
     var interests = [
       ['gamingTitle', 'gamingDescription'],
       ['sportsTitle', 'sportsDescription'],
