@@ -665,9 +665,9 @@ const server = http.createServer(async function (req, res) {
   const nonce = randomBytes(18).toString('base64');
   setSecurityHeaders(res, nonce);
 
-  if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST' && req.method !== 'DELETE') {
+  if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST' && req.method !== 'DELETE' && req.method !== 'PUT') {
     return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
-      Allow: 'GET, HEAD, POST, DELETE',
+      Allow: 'GET, HEAD, POST, DELETE, PUT',
       'Cache-Control': 'no-store'
     });
   }
@@ -689,12 +689,65 @@ const server = http.createServer(async function (req, res) {
     pathname === '/api/moderation/logout' ||
     Boolean(moderationReviewPath && moderationReviewPath[2] === 'actions');
   const allowedDeletePath = Boolean(moderationReviewPath && !moderationReviewPath[2]);
+  const allowedPutPath = pathname === '/api/admin/content';
   if ((req.method === 'POST' && !allowedPostPath) ||
-      (req.method === 'DELETE' && !allowedDeletePath)) {
+      (req.method === 'DELETE' && !allowedDeletePath) ||
+      (req.method === 'PUT' && !allowedPutPath)) {
     return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
       Allow: 'GET, HEAD, POST, DELETE',
       'Cache-Control': 'no-store'
     });
+  }
+
+  if (pathname === '/api/site-content' && (req.method === 'GET' || req.method === 'HEAD')) {
+    try {
+      return sendJson(req, res, 200, { content: await readSiteContent() }, {
+        'Cache-Control': 'no-store'
+      });
+    } catch (error) {
+      console.error('Public website content could not be read:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'Website content is temporarily unavailable.' });
+    }
+  }
+
+  if (pathname === '/api/admin/content' && (req.method === 'GET' || req.method === 'HEAD')) {
+    if (!getModerationSession(req)) {
+      return sendJson(req, res, 401, { error: 'Sign in to manage website content.' });
+    }
+    try {
+      return sendJson(req, res, 200, { content: await readSiteContent() });
+    } catch (error) {
+      console.error('Admin website content could not be read:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'Website content could not be loaded.' });
+    }
+  }
+
+  if (pathname === '/api/admin/content' && req.method === 'PUT') {
+    if (!hasSameOrigin(req)) {
+      return sendJson(req, res, 403, { error: 'Website updates must come from this website.' });
+    }
+    if (!getModerationSession(req)) {
+      return sendJson(req, res, 401, { error: 'Your admin session has expired. Please sign in again.' });
+    }
+    let payload;
+    try {
+      payload = await readJsonBody(req, MAX_SITE_CONTENT_BODY_BYTES);
+    } catch (error) {
+      return sendJson(req, res, error.statusCode || 400, { error: error.message || 'Invalid website content.' });
+    }
+    let content;
+    try {
+      content = normaliseSiteContent(payload && payload.content);
+    } catch (error) {
+      return sendJson(req, res, error.statusCode || 400, { error: error.message || 'Please check your changes.' });
+    }
+    try {
+      await saveSiteContent(content);
+      return sendJson(req, res, 200, { ok: true, content: content });
+    } catch (error) {
+      console.error('Website content could not be saved:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'Website changes could not be saved right now.' });
+    }
   }
 
   if (pathname === '/api/moderation/session' && (req.method === 'GET' || req.method === 'HEAD')) {
