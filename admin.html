@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b16">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <title>Admin Dashboard | Aarav</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin.css">
+  <script src="/admin.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <main id="admin-gate" class="admin-gate">
+    <a class="gate-brand" href="/" aria-label="Return to portfolio"><span class="brand-mark">A</span><span>Aarav <small>ADMINISTRATION</small></span></a>
+    <section class="gate-card" aria-labelledby="gate-title">
+      <div class="gate-icon" aria-hidden="true">↗</div>
+      <p class="eyebrow">PRIVATE AREA</p>
+      <h1 id="gate-title">Welcome back.</h1>
+      <p class="gate-copy">Sign in to manage your portfolio, content and reviews.</p>
+      <form id="admin-login-form">
+        <label for="admin-password">Admin password</label>
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" minlength="16" required placeholder="Enter your Fusion password">
+        <button class="button button-primary button-full" type="submit" id="admin-login-button">Sign in securely <span aria-hidden="true">→</span></button>
+        <p class="form-status" id="login-status" role="status" aria-live="polite"></p>
+      </form>
+      <a class="back-link" href="/">← Back to the public website</a>
+    </section>
+    <p class="gate-footer">Access is restricted to the site owner.</p>
+  </main>
+
+  <div id="admin-shell" class="admin-shell" hidden>
+    <aside class="sidebar">
+      <a class="sidebar-brand" href="/admin" aria-label="Admin dashboard home"><span class="brand-mark">A</span><span>Aarav <small>CONTROL PANEL</small></span></a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="sidebar-nav" aria-label="Admin sections">
+        <button type="button" class="side-link is-active" data-view-target="overview"><span class="side-icon">◈</span>Overview</button>
+        <button type="button" class="side-link" data-view-target="content"><span class="side-icon">✎</span>Website editor</button>
+        <button type="button" class="side-link" data-view-target="reviews"><span class="side-icon">✳</span>Review moderation<span class="side-count" id="nav-review-count">—</span></button>
+        <button type="button" class="side-link" data-view-target="settings"><span class="side-icon">⚙</span>Settings</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="side-link side-public" href="/" target="_blank" rel="noopener noreferrer"><span class="side-icon">↗</span>View live website</a>
+        <div class="owner-card"><span class="owner-avatar">A</span><span class="owner-copy"><strong>Site owner</strong><small>Authenticated session</small></span><span class="owner-status" aria-label="Session active"></span></div>
+        <button class="side-link sign-out-link" type="button" id="admin-logout-button"><span class="side-icon">⇥</span>Sign out</button>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="topbar">
+        <div class="topbar-title"><p class="eyebrow">PORTFOLIO / ADMIN</p><h1 id="view-title">Overview</h1><p id="view-subtitle">Your website at a glance.</p></div>
+        <div class="topbar-actions"><span class="secure-pill"><span></span> Protected session</span><a class="button button-quiet" href="/" target="_blank" rel="noopener noreferrer">Open website ↗</a></div>
+      </header>
+      <p id="admin-global-status" class="global-status" role="status" aria-live="polite"></p>
+
+      <section class="admin-view is-visible" data-view="overview" aria-labelledby="overview-heading">
+        <div class="welcome-row"><div><p class="eyebrow">CONTROL CENTRE</p><h2 id="overview-heading">Good to see you.</h2><p class="muted">Manage what visitors see and keep your reviews under control.</p></div><a class="button button-primary" href="/" target="_blank" rel="noopener noreferrer">View live site <span aria-hidden="true">↗</span></a></div>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="stat-top"><span>Total reviews</span><span class="stat-symbol">✳</span></div><strong id="stat-reviews">—</strong><p>All submitted reviews</p></article>
+          <article class="stat-card"><div class="stat-top"><span>Public reviews</span><span class="stat-symbol symbol-blue">◉</span></div><strong id="stat-public">—</strong><p>Currently visible to visitors</p></article>
+          <article class="stat-card"><div class="stat-top"><span>Average rating</span><span class="stat-symbol symbol-gold">★</span></div><strong id="stat-average">—</strong><p>From public reviews</p></article>
+          <article class="stat-card"><div class="stat-top"><span>Hidden reviews</span><span class="stat-symbol symbol-red">◌</span></div><strong id="stat-hidden">—</strong><p>Kept private until restored</p></article>
+        </div>
+        <div class="overview-grid">
+          <article class="content-card quick-actions"><div class="card-heading"><div><p class="eyebrow">QUICK ACTIONS</p><h3>Jump straight in</h3></div></div><button type="button" class="quick-action" data-go-view="content"><span class="quick-icon">✎</span><span><strong>Edit website content</strong><small>Change text, projects and social links</small></span><b>→</b></button><button type="button" class="quick-action" data-go-view="reviews"><span class="quick-icon quick-icon-blue">✳</span><span><strong>Manage submitted reviews</strong><small>Hide, restore or permanently delete</small></span><b>→</b></button></article>
+          <article class="content-card recent-reviews"><div class="card-heading"><div><p class="eyebrow">LATEST ACTIVITY</p><h3>Recent reviews</h3></div><button type="button" class="text-button" data-go-view="reviews">Manage all →</button></div><div id="overview-recent-reviews" class="recent-list"><p class="empty-state">Loading reviews…</p></div></article>
+        </div>
+      </section>
+
+      <section class="admin-view" data-view="content" aria-labelledby="content-heading" hidden>
+        <div class="section-intro"><div><p class="eyebrow">CONTENT MANAGEMENT</p><h2 id="content-heading">Website editor</h2><p class="muted">Update your portfolio text, experience cards and links without opening the source code.</p></div><a class="button button-quiet" href="/" target="_blank" rel="noopener noreferrer">Preview site ↗</a></div>
+        <form id="content-form">
+          <div id="content-fields" class="editor-groups"><p class="empty-state">Loading editable fields…</p></div>
+          <div class="editor-savebar"><span id="content-save-status" class="save-status" role="status" aria-live="polite">Changes are not saved automatically.</span><div><button class="button button-quiet" type="button" id="content-reset-button">Restore defaults</button><button class="button button-primary" type="submit" id="content-save-button">Save changes</button></div></div>
+        </form>
+      </section>
+
+      <section class="admin-view" data-view="reviews" aria-labelledby="reviews-heading" hidden>
+        <div class="section-intro"><div><p class="eyebrow">COMMUNITY FEEDBACK</p><h2 id="reviews-heading">Review moderation</h2><p class="muted">Hide a review to remove it from public view, or delete it permanently.</p></div><button class="button button-quiet" type="button" id="refresh-reviews-button">↻ Refresh reviews</button></div>
+        <div class="review-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="review-search" placeholder="Search names or comments" autocomplete="off"></label><label class="filter-label" for="review-filter">Show <select id="review-filter"><option value="all">All reviews</option><option value="visible">Public only</option><option value="hidden">Hidden only</option></select></label></div>
+        <div id="admin-review-list" class="admin-review-list"><p class="empty-state">Loading reviews…</p></div>
+        <p id="review-list-status" class="list-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="admin-view" data-view="settings" aria-labelledby="settings-heading" hidden>
+        <div class="section-intro"><div><p class="eyebrow">SITE CONFIGURATION</p><h2 id="settings-heading">Settings</h2><p class="muted">Manage access and understand how your changes are saved.</p></div></div>
+        <div class="settings-grid">
+          <article class="content-card settings-card"><div class="settings-icon">⌑</div><p class="eyebrow">ADMIN ACCESS</p><h3>Password security</h3><p>Your admin password is not stored in this dashboard or in GitHub. Change it in Fusion's environment settings by updating <code>REVIEW_ADMIN_PASSWORD</code>, then restart the service.</p><div class="settings-note">Use a unique passphrase with at least 16 characters. Never paste it into website content.</div></article>
+          <article class="content-card settings-card"><div class="settings-icon icon-blue">▤</div><p class="eyebrow">DATA STORAGE</p><h3>Saved website changes</h3><p>Content edits and review moderation are stored by the server. The hosting file system must preserve the configured data directory across restarts and redeployments.</p><div class="settings-note" id="storage-status">Using the site's configured storage location.</div></article>
+          <article class="content-card settings-card"><div class="settings-icon icon-green">✓</div><p class="eyebrow">SESSION</p><h3>Private admin session</h3><p>Your sign-in uses a server-checked, HttpOnly session cookie. For extra safety, sign out when using a shared computer.</p><button type="button" class="button button-quiet" id="settings-logout-button">Sign out of admin</button></article>
+        </div>
+      </section>
+      <footer class="admin-footer"><span>Aarav Portfolio · Admin</span><span>Changes affect the public website</span></footer>
+    </main>
+  </div>
+</body>
+</html>
