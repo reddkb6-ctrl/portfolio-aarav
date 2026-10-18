@@ -159,8 +159,8 @@
   var moderationStatus = make('p', 'moderation-status');
   moderationStatus.setAttribute('role', 'status');
   moderationStatus.setAttribute('aria-live', 'polite');
-  moderationLoginForm.appendChild(moderationStatus);
   moderationContent.appendChild(moderationLoginForm);
+  moderationContent.appendChild(moderationStatus);
 
   var moderationDashboard = make('div', 'moderation-dashboard');
   moderationDashboard.hidden = true;
