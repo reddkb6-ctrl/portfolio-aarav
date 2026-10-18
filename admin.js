@@ -346,7 +346,7 @@
       state.content = data.content || {};
       state.defaults = data.defaults || {};
       renderContentEditor();
-      $('#storage-status').textContent = 'Content file: ' + (state.content ? 'loaded' : 'not loaded') + '. Keep the Fusion data directory persistent to retain changes after redeployments.';
+      $('#storage-status').textContent = 'Current content loaded. Keep the Fusion data directory persistent to retain changes after redeployments.';
       return data;
     }).catch(function (error) {
       if (!isUnauthorised(error)) {
