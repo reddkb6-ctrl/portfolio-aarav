@@ -8,3 +8,5 @@ npm-debug.log*
 Thumbs.db
 /data/reviews.json
 /data/reviews.json.*.tmp
+/data/site-content.json
+/data/site-content.json.*.tmp
