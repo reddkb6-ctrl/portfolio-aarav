@@ -505,6 +505,23 @@ const server = http.createServer(async function (req, res) {
     }
   }
 
+  if (pathname === '/reviews.css' || pathname === '/reviews.js') {
+    const asset = pathname === '/reviews.css'
+      ? { file: path.join(__dirname, 'reviews.css'), type: 'text/css; charset=utf-8' }
+      : { file: path.join(__dirname, 'reviews.js'), type: 'text/javascript; charset=utf-8' };
+    return fs.readFile(asset.file, function (err, data) {
+      if (err) {
+        console.error('Review asset read failed:', err.code || 'I/O error');
+        return send(req, res, 404, 'Not found', 'text/plain; charset=utf-8', {
+          'Cache-Control': 'no-store'
+        });
+      }
+      return send(req, res, 200, data, asset.type, {
+        'Cache-Control': 'public, max-age=300'
+      });
+    });
+  }
+
   if (pathname === '/.well-known/discord') {
     return send(req, res, 200, 'dh=4e87b56ab4882300b0762ef8c56edc5818f69f2d',
       'text/plain; charset=utf-8', { 'Cache-Control': 'public, max-age=3600' });
