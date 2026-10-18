@@ -137,6 +137,7 @@
   layout.appendChild(panel);
   root.textContent = '';
   root.appendChild(layout);
+  root.setAttribute('aria-busy', 'false');
 
   var selectedRating = 0;
   var loadedReviews = [];
