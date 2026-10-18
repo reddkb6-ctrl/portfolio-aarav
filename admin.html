@@ -25,7 +25,7 @@
       <p class="gate-copy">Sign in to manage your portfolio, content and reviews.</p>
       <form id="admin-login-form">
         <label for="admin-password">Admin password</label>
-        <input id="admin-password" name="password" type="password" autocomplete="current-password" minlength="16" required placeholder="Enter your Fusion password">
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" required placeholder="Enter your Fusion password">
         <button class="button button-primary button-full" type="submit" id="admin-login-button">Sign in securely <span aria-hidden="true">→</span></button>
         <p class="form-status" id="login-status" role="status" aria-live="polite"></p>
       </form>
@@ -90,7 +90,7 @@
       <section class="admin-view" data-view="settings" aria-labelledby="settings-heading" hidden>
         <div class="section-intro"><div><p class="eyebrow">SITE CONFIGURATION</p><h2 id="settings-heading">Settings</h2><p class="muted">Manage access and understand how your changes are saved.</p></div></div>
         <div class="settings-grid">
-          <article class="content-card settings-card"><div class="settings-icon">⌑</div><p class="eyebrow">ADMIN ACCESS</p><h3>Password security</h3><p>Your admin password is not stored in this dashboard or in GitHub. Change it in Fusion's environment settings by updating <code>REVIEW_ADMIN_PASSWORD</code>, then restart the service.</p><div class="settings-note">Use a unique passphrase with at least 16 characters. Never paste it into website content.</div></article>
+          <article class="content-card settings-card"><div class="settings-icon">⌑</div><p class="eyebrow">ADMIN ACCESS</p><h3>Password security</h3><p>Your admin password is not stored in this dashboard or in GitHub. Change it in Fusion's environment settings by updating <code>REVIEW_ADMIN_PASSWORD</code>, then restart the service.</p><div class="settings-note">Use a unique, hard-to-guess passphrase. Never paste it into website content.</div></article>
           <article class="content-card settings-card"><div class="settings-icon icon-blue">▤</div><p class="eyebrow">DATA STORAGE</p><h3>Saved website changes</h3><p>Content edits and review moderation are stored by the server. The hosting file system must preserve the configured data directory across restarts and redeployments.</p><div class="settings-note" id="storage-status">Using the site's configured storage location.</div></article>
           <article class="content-card settings-card"><div class="settings-icon icon-green">✓</div><p class="eyebrow">SESSION</p><h3>Private admin session</h3><p>Your sign-in uses a server-checked, HttpOnly session cookie. For extra safety, sign out when using a shared computer.</p><button type="button" class="button button-quiet" id="settings-logout-button">Sign out of admin</button></article>
         </div>
