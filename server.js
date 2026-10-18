@@ -19,6 +19,9 @@ const MAX_STORED_REVIEWS = 1000;
 const REVIEW_WINDOW_MS = 10 * 60 * 1000;
 const REVIEW_WINDOW_MAX = 3;
 const REVIEW_FILE = path.resolve(process.env.REVIEWS_FILE || path.join(__dirname, 'data', 'reviews.json'));
+const MODERATION_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
+const MODERATION_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MODERATION_LOGIN_MAX_FAILURES = 5;
 const PROFILE_REFRESH_COOLDOWN_MS = 30 * 1000;
 
 let avatarCache = null;
@@ -28,6 +31,8 @@ let profileAt = 0;
 let profileLastRefreshAt = 0;
 let reviewWriteQueue = Promise.resolve();
 const reviewRateLimit = new Map();
+const moderationSessions = new Map();
+const moderationLoginFailures = new Map();
 let avatarRequest = null;
 let profileRequest = null;
 
