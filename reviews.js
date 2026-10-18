@@ -137,6 +137,47 @@
   layout.appendChild(panel);
   root.textContent = '';
   root.appendChild(layout);
+
+  var moderationPanel = make('details', 'moderation-panel');
+  moderationPanel.id = 'site-moderation';
+  moderationPanel.appendChild(make('summary', 'moderation-panel-summary', 'Site moderation'));
+  var moderationContent = make('div', 'moderation-content');
+  var moderationLoginForm = make('form', 'moderation-login-form');
+  moderationLoginForm.noValidate = false;
+  var moderationPassword = make('input');
+  moderationPassword.type = 'password';
+  moderationPassword.id = 'moderator-password';
+  moderationPassword.name = 'password';
+  moderationPassword.autocomplete = 'current-password';
+  moderationPassword.required = true;
+  moderationPassword.minLength = 16;
+  moderationPassword.placeholder = 'Moderator password';
+  moderationLoginForm.appendChild(field('review-field', 'Moderator password', moderationPassword.id, moderationPassword));
+  var moderationLoginButton = make('button', 'btn btn-main moderation-login-button', 'Sign in');
+  moderationLoginButton.type = 'submit';
+  moderationLoginForm.appendChild(moderationLoginButton);
+  var moderationStatus = make('p', 'moderation-status');
+  moderationStatus.setAttribute('role', 'status');
+  moderationStatus.setAttribute('aria-live', 'polite');
+  moderationLoginForm.appendChild(moderationStatus);
+  moderationContent.appendChild(moderationLoginForm);
+
+  var moderationDashboard = make('div', 'moderation-dashboard');
+  moderationDashboard.hidden = true;
+  var moderationToolbar = make('div', 'moderation-toolbar');
+  var moderationCount = make('p', 'moderation-count', 'All reviews');
+  var moderationLogoutButton = make('button', 'btn btn-line moderation-logout-button', 'Sign out');
+  moderationLogoutButton.type = 'button';
+  moderationToolbar.appendChild(moderationCount);
+  moderationToolbar.appendChild(moderationLogoutButton);
+  moderationDashboard.appendChild(moderationToolbar);
+  var moderationList = make('div', 'moderation-list');
+  moderationList.appendChild(make('p', 'review-empty', 'Sign in to manage reviews.'));
+  moderationDashboard.appendChild(moderationList);
+  moderationContent.appendChild(moderationDashboard);
+  moderationPanel.appendChild(moderationContent);
+  root.appendChild(moderationPanel);
+
   root.setAttribute('aria-busy', 'false');
 
   var selectedRating = 0;
