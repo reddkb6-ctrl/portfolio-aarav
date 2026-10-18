@@ -477,7 +477,7 @@ const server = http.createServer(async function (req, res) {
       });
     }
 
-    if (typeof payload.website === 'string' && payload.website.trim()) {
+    if (payload && typeof payload === 'object' && typeof payload.website === 'string' && payload.website.trim()) {
       return sendJson(req, res, 201, { ok: true, review: null });
     }
 
