@@ -19,6 +19,8 @@ const MAX_STORED_REVIEWS = 1000;
 const REVIEW_WINDOW_MS = 10 * 60 * 1000;
 const REVIEW_WINDOW_MAX = 3;
 const REVIEW_FILE = path.resolve(process.env.REVIEWS_FILE || path.join(__dirname, 'data', 'reviews.json'));
+const SITE_CONTENT_FILE = path.resolve(process.env.SITE_CONTENT_FILE || path.join(__dirname, 'data', 'site-content.json'));
+const MAX_SITE_CONTENT_BODY_BYTES = 32768;
 const MODERATION_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 const MODERATION_LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MODERATION_LOGIN_MAX_FAILURES = 5;
@@ -205,7 +207,7 @@ function isSecureRequest(req) {
 function moderationCookie(token, req, maxAge) {
   const attributes = [
     'portfolio_moderator=' + token,
-    'Path=/api/moderation',
+    'Path=/',
     'HttpOnly',
     'SameSite=Strict',
     'Max-Age=' + String(maxAge)
