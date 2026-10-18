@@ -557,6 +557,72 @@ const server = http.createServer(async function (req, res) {
     });
   }
 
+  if (pathname === '/api/moderation/session' && (req.method === 'GET' || req.method === 'HEAD')) {
+    return sendJson(req, res, 200, { authenticated: Boolean(getModerationSession(req)) });
+  }
+
+  if (pathname === '/api/moderation/login' && req.method === 'POST') {
+    if (!hasSameOrigin(req)) return sendJson(req, res, 403, { error: 'Sign-in must come from this website.' });
+    const configuredPassword = process.env.REVIEW_ADMIN_PASSWORD || '';
+    if (configuredPassword.length < 16) {
+      return sendJson(req, res, 503, {
+        error: 'Site moderation is not configured yet. Set REVIEW_ADMIN_PASSWORD in your hosting environment.'
+      });
+    }
+    const clientKey = getReviewClientKey(req);
+    const retryAfter = moderationLoginRetryAfter(clientKey);
+    if (retryAfter) {
+      return sendJson(req, res, 429, { error: 'Too many sign-in attempts. Please try again later.' }, {
+        'Retry-After': String(retryAfter)
+      });
+    }
+    let payload;
+    try {
+      payload = await readJsonBody(req, 2048);
+    } catch (error) {
+      return sendJson(req, res, error.statusCode || 400, { error: error.message || 'Invalid request.' });
+    }
+    if (!validModerationPassword(payload && payload.password)) {
+      recordModerationLoginFailure(clientKey);
+      return sendJson(req, res, 401, { error: 'That moderator password is not correct.' });
+    }
+    const token = randomBytes(32).toString('hex');
+    const maxAge = Math.floor(MODERATION_SESSION_TTL_MS / 1000);
+    moderationSessions.set(token, Date.now() + MODERATION_SESSION_TTL_MS);
+    if (moderationSessions.size > 1000) {
+      moderationSessions.forEach(function (expiry, sessionToken) {
+        if (expiry <= Date.now()) moderationSessions.delete(sessionToken);
+      });
+    }
+    moderationLoginFailures.delete(clientKey);
+    return sendJson(req, res, 200, { ok: true, expiresIn: maxAge }, {
+      'Set-Cookie': moderationCookie(token, req, maxAge),
+      'Cache-Control': 'no-store'
+    });
+  }
+
+  if (pathname === '/api/moderation/logout' && req.method === 'POST') {
+    if (!hasSameOrigin(req)) return sendJson(req, res, 403, { error: 'Sign-out must come from this website.' });
+    const token = getModerationSession(req);
+    if (token) moderationSessions.delete(token);
+    return sendJson(req, res, 200, { ok: true }, {
+      'Set-Cookie': moderationCookie('', req, 0),
+      'Cache-Control': 'no-store'
+    });
+  }
+
+  if (pathname === '/api/moderation/reviews' && (req.method === 'GET' || req.method === 'HEAD')) {
+    if (!getModerationSession(req)) {
+      return sendJson(req, res, 401, { error: 'Sign in to access site moderation.' });
+    }
+    try {
+      return sendJson(req, res, 200, { reviews: await readReviews() });
+    } catch (error) {
+      console.error('Moderation review list could not be read:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'Moderation is temporarily unavailable.' });
+    }
+  }
+
   if (pathname === '/api/reviews' && (req.method === 'GET' || req.method === 'HEAD')) {
     try {
       const reviews = await readReviews();
