@@ -14,7 +14,7 @@
     var textNode = Array.prototype.slice.call(node.childNodes).find(function (child) {
       return child.nodeType === 3 && child.nodeValue.trim();
     });
-    if (textNode) textNode.nodeValue = ' ' + value;
+    if (textNode) textNode.nodeValue = value;
     else node.appendChild(document.createTextNode(value));
   }
 
