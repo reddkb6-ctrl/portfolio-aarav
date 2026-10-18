@@ -272,6 +272,176 @@
     });
   }
 
+  function showModerationStatus(message, state) {
+    moderationStatus.className = 'moderation-status' + (state ? ' is-' + state : '');
+    moderationStatus.textContent = message;
+  }
+
+  function moderationFetch(url, options) {
+    return fetch(url, options || {}).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok) {
+          var error = new Error(data.error || 'The moderation request could not be completed.');
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      });
+    });
+  }
+
+  function setModeratorSignedIn(signedIn) {
+    moderationLoginForm.hidden = signedIn;
+    moderationDashboard.hidden = !signedIn;
+    if (signedIn) {
+      moderationPanel.open = true;
+      loadModerationReviews();
+    } else {
+      moderationPassword.value = '';
+      moderationList.textContent = '';
+      moderationList.appendChild(make('p', 'review-empty', 'Sign in to manage reviews.'));
+    }
+  }
+
+  function renderModerationReviews(reviews) {
+    moderationList.textContent = '';
+    moderationCount.textContent = (reviews.length === 1 ? '1 review' : reviews.length + ' reviews') + ' · owner controls';
+    if (!reviews.length) {
+      moderationList.appendChild(make('p', 'review-empty', 'No reviews to moderate.'));
+      return;
+    }
+
+    reviews.forEach(function (review) {
+      var card = make('article', 'review-card moderation-review-card');
+      var header = make('div', 'review-card-head');
+      var identity = make('div', 'review-identity');
+      identity.appendChild(make('h3', 'review-name', String(review.name || 'Visitor')));
+      identity.appendChild(make('time', 'review-date', displayDate(review.createdAt)));
+      var rating = Math.max(1, Math.min(5, Math.round(Number(review.rating) || 1)));
+      var stars = make('span', 'review-stars', '★'.repeat(rating) + '☆'.repeat(5 - rating));
+      stars.setAttribute('aria-label', rating + ' out of 5');
+      header.appendChild(identity);
+      header.appendChild(stars);
+      card.appendChild(header);
+
+      var statusLine = make('p', 'moderation-review-state', review.hidden === true ? 'Hidden from the public' : 'Visible to the public');
+      statusLine.classList.toggle('is-hidden', review.hidden === true);
+      card.appendChild(statusLine);
+      if (review.comment) card.appendChild(make('p', 'review-comment', String(review.comment)));
+
+      var actions = make('div', 'moderation-review-actions');
+      var visibilityButton = make('button', 'btn btn-line moderation-action-button',
+        review.hidden === true ? 'Restore review' : 'Hide review');
+      visibilityButton.type = 'button';
+      visibilityButton.addEventListener('click', function () {
+        changeReviewVisibility(review, review.hidden === true ? 'restore' : 'hide');
+      });
+      var deleteButton = make('button', 'btn btn-line moderation-delete-button', 'Delete');
+      deleteButton.type = 'button';
+      deleteButton.addEventListener('click', function () {
+        deleteModeratedReview(review);
+      });
+      actions.appendChild(visibilityButton);
+      actions.appendChild(deleteButton);
+      card.appendChild(actions);
+      moderationList.appendChild(card);
+    });
+  }
+
+  function loadModerationReviews() {
+    moderationList.setAttribute('aria-busy', 'true');
+    moderationFetch('/api/moderation/reviews', { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then(function (data) {
+        renderModerationReviews(Array.isArray(data.reviews) ? data.reviews : []);
+        moderationList.setAttribute('aria-busy', 'false');
+      })
+      .catch(function (error) {
+        moderationList.setAttribute('aria-busy', 'false');
+        if (error.status === 401) setModeratorSignedIn(false);
+        showModerationStatus(error.message || 'Moderation is temporarily unavailable.', 'error');
+      });
+  }
+
+  function changeReviewVisibility(review, action) {
+    showModerationStatus(action === 'hide' ? 'Hiding review…' : 'Restoring review…', '');
+    moderationFetch('/api/moderation/reviews/' + encodeURIComponent(review.id) + '/actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ action: action })
+    }).then(function () {
+      showModerationStatus(action === 'hide' ? 'Review hidden from the public.' : 'Review restored to the public list.', 'success');
+      loadReviews();
+      loadModerationReviews();
+    }).catch(function (error) {
+      if (error.status === 401) setModeratorSignedIn(false);
+      showModerationStatus(error.message || 'That review could not be updated.', 'error');
+    });
+  }
+
+  function deleteModeratedReview(review) {
+    if (!window.confirm('Permanently delete this review? This cannot be undone.')) return;
+    showModerationStatus('Deleting review…', '');
+    moderationFetch('/api/moderation/reviews/' + encodeURIComponent(review.id), {
+      method: 'DELETE',
+      headers: { Accept: 'application/json' }
+    }).then(function () {
+      showModerationStatus('Review deleted.', 'success');
+      loadReviews();
+      loadModerationReviews();
+    }).catch(function (error) {
+      if (error.status === 401) setModeratorSignedIn(false);
+      showModerationStatus(error.message || 'That review could not be deleted.', 'error');
+    });
+  }
+
+  moderationLoginForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (!moderationPassword.value) {
+      showModerationStatus('Enter the moderator password.', 'error');
+      moderationPassword.focus();
+      return;
+    }
+    moderationLoginButton.disabled = true;
+    moderationLoginButton.textContent = 'Signing in…';
+    showModerationStatus('', '');
+    moderationFetch('/api/moderation/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ password: moderationPassword.value })
+    }).then(function () {
+      moderationPassword.value = '';
+      showModerationStatus('Signed in. Site moderation is unlocked for this session.', 'success');
+      setModeratorSignedIn(true);
+    }).catch(function (error) {
+      showModerationStatus(error.message || 'Sign-in failed.', 'error');
+    }).finally(function () {
+      moderationLoginButton.disabled = false;
+      moderationLoginButton.textContent = 'Sign in';
+    });
+  });
+
+  moderationLogoutButton.addEventListener('click', function () {
+    moderationLogoutButton.disabled = true;
+    moderationFetch('/api/moderation/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: '{}'
+    }).then(function () {
+      setModeratorSignedIn(false);
+      showModerationStatus('Signed out of site moderation.', 'success');
+    }).catch(function (error) {
+      showModerationStatus(error.message || 'Sign-out failed.', 'error');
+    }).finally(function () {
+      moderationLogoutButton.disabled = false;
+    });
+  });
+
+  fetch('/api/moderation/session', { headers: { Accept: 'application/json' }, cache: 'no-store' })
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      if (data && data.authenticated) setModeratorSignedIn(true);
+    }).catch(function () {});
+
   function loadReviews() {
     list.setAttribute('aria-busy', 'true');
     fetch('/api/reviews', {
