@@ -1039,7 +1039,8 @@ const server = http.createServer(async function (req, res) {
       });
     }
 
-    const securedHtml = html.replace(/<(script|style)\b(?![^>]*\bnonce\s*=)/gi,
+    const withSiteContentScript = html.replace(/<\/body>/i, '  <script src="/site-content.js" defer></script>\n</body>');
+    const securedHtml = withSiteContentScript.replace(/<(script|style)\b(?![^>]*\bnonce\s*=)/gi,
       '<$1 nonce="' + nonce + '"');
 
     return send(req, res, 200, securedHtml, 'text/html; charset=utf-8', {
