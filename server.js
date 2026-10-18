@@ -184,6 +184,92 @@ function mutateStoredReview(id, action) {
   });
 }
 
+function hasSameOrigin(req) {
+  const origin = req.headers.origin;
+  if (typeof origin !== 'string' || !req.headers.host) return false;
+  try {
+    const parsed = new URL(origin);
+    return (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
+      parsed.host === req.headers.host;
+  } catch (_) {
+    return false;
+  }
+}
+
+function isSecureRequest(req) {
+  const forwardedProto = String(req.headers['x-forwarded-proto'] || '')
+    .split(',')[0].trim().toLowerCase();
+  return Boolean(req.socket.encrypted) || forwardedProto === 'https';
+}
+
+function moderationCookie(token, req, maxAge) {
+  const attributes = [
+    'portfolio_moderator=' + token,
+    'Path=/api/moderation',
+    'HttpOnly',
+    'SameSite=Strict',
+    'Max-Age=' + String(maxAge)
+  ];
+  if (isSecureRequest(req)) attributes.push('Secure');
+  return attributes.join('; ');
+}
+
+function getCookie(req, name) {
+  const cookieHeader = String(req.headers.cookie || '');
+  const prefix = name + '=';
+  for (const part of cookieHeader.split(';')) {
+    const item = part.trim();
+    if (item.indexOf(prefix) === 0) return item.slice(prefix.length);
+  }
+  return '';
+}
+
+function getModerationSession(req) {
+  const token = getCookie(req, 'portfolio_moderator');
+  if (!/^[a-f0-9]{64}$/.test(token)) return false;
+  const expiry = moderationSessions.get(token);
+  if (!expiry) return false;
+  if (expiry <= Date.now()) {
+    moderationSessions.delete(token);
+    return false;
+  }
+  return token;
+}
+
+function moderationLoginRetryAfter(key) {
+  const now = Date.now();
+  const recent = (moderationLoginFailures.get(key) || []).filter(function (time) {
+    return now - time < MODERATION_LOGIN_WINDOW_MS;
+  });
+  moderationLoginFailures.set(key, recent);
+  if (recent.length < MODERATION_LOGIN_MAX_FAILURES) return 0;
+  return Math.max(1, Math.ceil((MODERATION_LOGIN_WINDOW_MS - (now - recent[0])) / 1000));
+}
+
+function recordModerationLoginFailure(key) {
+  const now = Date.now();
+  const recent = (moderationLoginFailures.get(key) || []).filter(function (time) {
+    return now - time < MODERATION_LOGIN_WINDOW_MS;
+  });
+  recent.push(now);
+  moderationLoginFailures.set(key, recent);
+  if (moderationLoginFailures.size > 2000) {
+    moderationLoginFailures.forEach(function (times, client) {
+      if (!times.some(function (time) { return now - time < MODERATION_LOGIN_WINDOW_MS; })) {
+        moderationLoginFailures.delete(client);
+      }
+    });
+  }
+}
+
+function validModerationPassword(candidate) {
+  const configured = process.env.REVIEW_ADMIN_PASSWORD || '';
+  if (configured.length < 16 || typeof candidate !== 'string') return false;
+  const expected = createHash('sha256').update(configured, 'utf8').digest();
+  const actual = createHash('sha256').update(candidate, 'utf8').digest();
+  return timingSafeEqual(expected, actual);
+}
+
 function getReviewClientKey(req) {
   const forwarded = String(req.headers['x-forwarded-for'] || '')
     .split(',')
