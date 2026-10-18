@@ -6,3 +6,5 @@ npm-debug.log*
 *.log
 .DS_Store
 Thumbs.db
+/data/reviews.json
+/data/reviews.json.*.tmp
