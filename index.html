@@ -134,7 +134,7 @@
     .filter-result{color:var(--muted);font-size:.84rem}
     .project[hidden]{display:none!important}
     .profile-actions{align-items:center}
-    .profile-actions .btn{min-height:43px;white-space:nowrap}
+    .profile-actions .btn{min-height:43px;white-space:nowrap}.profile-actions button.btn{font:500 .97rem var(--font);cursor:pointer}
     .profile-actions .btn svg{width:16px;height:16px}
     #rbx-refresh[disabled]{cursor:wait;opacity:.72}
     #rbx-refresh.is-loading svg{animation:refresh-spin .9s linear infinite}
@@ -206,12 +206,12 @@
                 <div class="stat"><b id="rbx-followers">—</b><span>Followers</span></div>
               </div>
               <p class="bio" id="rbx-bio"></p>
+              <p class="profile-status" id="rbx-status" role="status" aria-live="polite"></p>
             </div>
             <div class="profile-actions">
               <button class="btn btn-line" id="rbx-refresh" type="button"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Refresh stats</span></button>
               <a class="btn btn-main" href="https://www.roblox.com/users/3175667757/profile" target="_blank" rel="noopener noreferrer">View my profile <span aria-hidden="true">↗</span></a>
             </div>
-            <p class="profile-status" id="rbx-status" role="status" aria-live="polite"></p>
           </div>
         </div>
       </section>
@@ -428,7 +428,7 @@
             card.hidden=!visible;
             if(visible){shown+=1;card.classList.remove('visible');void card.offsetWidth;card.classList.add('visible')}
           });
-          if(filterResult)filterResult.textContent='Showing '+(filter==='all'?'all ':shown+' of ')+shown+' experience'+(shown===1?'':'s');
+          if(filterResult)filterResult.textContent=filter==='all'?'Showing all '+shown+' experiences':'Showing '+shown+' matching experience'+(shown===1?'':'s');
         });
       });
 
