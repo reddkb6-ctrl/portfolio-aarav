@@ -62,7 +62,8 @@ function send(req, res, status, body, contentType, extraHeaders) {
 async function getJson(url) {
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
-    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    redirect: 'error'
   });
 
   if (!res.ok) {
@@ -81,6 +82,7 @@ async function readLimited(response, maxBytes) {
   const lengthHeader = response.headers.get('content-length');
   const length = lengthHeader === null ? null : Number(lengthHeader);
   if (length !== null && Number.isFinite(length) && length > maxBytes) {
+    if (response.body) await response.body.cancel().catch(function () {});
     throw new Error('Avatar image exceeds the size limit');
   }
   if (!response.body) {
@@ -135,14 +137,14 @@ async function getAvatar() {
     }
 
     const img = await fetch(parsedImageUrl.href, {
-      headers: { Accept: 'image/png, image/webp, image/jpeg' },
+      headers: { Accept: 'image/png' },
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       redirect: 'error'
     });
 
     if (!img.ok) throw new Error('Avatar image request failed');
     const imageType = (img.headers.get('content-type') || '').toLowerCase();
-    if (!/^image\/(png|webp|jpeg)$/.test(imageType)) {
+    if (imageType.split(';')[0].trim() !== 'image/png') {
       throw new Error('Avatar response was not a supported image');
     }
 
