@@ -364,11 +364,12 @@ function moderationCookie(token, req, maxAge) {
 function getCookie(req, name) {
   const cookieHeader = String(req.headers.cookie || '');
   const prefix = name + '=';
+  let found = '';
   for (const part of cookieHeader.split(';')) {
     const item = part.trim();
-    if (item.indexOf(prefix) === 0) return item.slice(prefix.length);
+    if (item.indexOf(prefix) === 0) found = item.slice(prefix.length);
   }
-  return '';
+  return found;
 }
 
 function getModerationSession(req) {
@@ -701,7 +702,7 @@ const server = http.createServer(async function (req, res) {
       (req.method === 'DELETE' && !allowedDeletePath) ||
       (req.method === 'PUT' && !allowedPutPath)) {
     return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
-      Allow: 'GET, HEAD, POST, DELETE',
+      Allow: 'GET, HEAD, POST, DELETE, PUT',
       'Cache-Control': 'no-store'
     });
   }
