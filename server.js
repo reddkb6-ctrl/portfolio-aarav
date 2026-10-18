@@ -623,9 +623,50 @@ const server = http.createServer(async function (req, res) {
     }
   }
 
+  if (moderationReviewPath && moderationReviewPath[2] === 'actions' && req.method === 'POST') {
+    if (!hasSameOrigin(req)) return sendJson(req, res, 403, { error: 'Moderation actions must come from this website.' });
+    if (!getModerationSession(req)) {
+      return sendJson(req, res, 401, { error: 'Your moderation session has expired. Please sign in again.' });
+    }
+    let payload;
+    try {
+      payload = await readJsonBody(req, 2048);
+    } catch (error) {
+      return sendJson(req, res, error.statusCode || 400, { error: error.message || 'Invalid request.' });
+    }
+    const action = payload && payload.action;
+    if (action !== 'hide' && action !== 'restore') {
+      return sendJson(req, res, 400, { error: 'Choose hide or restore.' });
+    }
+    try {
+      const review = await mutateStoredReview(moderationReviewPath[1], action);
+      if (!review) return sendJson(req, res, 404, { error: 'That review could not be found.' });
+      return sendJson(req, res, 200, { ok: true, review: review });
+    } catch (error) {
+      console.error('Review moderation failed:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'That review could not be updated right now.' });
+    }
+  }
+
+  if (moderationReviewPath && !moderationReviewPath[2] && req.method === 'DELETE') {
+    if (!hasSameOrigin(req)) return sendJson(req, res, 403, { error: 'Review deletion must come from this website.' });
+    if (!getModerationSession(req)) {
+      return sendJson(req, res, 401, { error: 'Your moderation session has expired. Please sign in again.' });
+    }
+    try {
+      const review = await mutateStoredReview(moderationReviewPath[1], 'delete');
+      if (!review) return sendJson(req, res, 404, { error: 'That review could not be found.' });
+      return sendJson(req, res, 200, { ok: true });
+    } catch (error) {
+      console.error('Review deletion failed:', error && error.name ? error.name : 'Error');
+      return sendJson(req, res, 500, { error: 'That review could not be deleted right now.' });
+    }
+  }
+
   if (pathname === '/api/reviews' && (req.method === 'GET' || req.method === 'HEAD')) {
     try {
-      const reviews = await readReviews();
+      const allReviews = await readReviews();
+      const reviews = allReviews.filter(function (review) { return review.hidden !== true; });
       const total = reviews.length;
       const average = total
         ? Math.round((reviews.reduce(function (sum, review) { return sum + Number(review.rating || 0); }, 0) / total) * 10) / 10
@@ -679,7 +720,8 @@ const server = http.createServer(async function (req, res) {
       name: fields.name,
       rating: fields.rating,
       comment: fields.comment,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      hidden: false
     };
 
     try {
