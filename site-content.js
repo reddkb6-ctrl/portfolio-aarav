@@ -25,10 +25,10 @@
     if (allowed.includes(value)) node.setAttribute('href', value);
   }
 
-  function setProject(prefix, keyPrefix) {
-    setText('.project-' + prefix + ' .project-tag', keyPrefix + 'Tag');
-    setText('.project-' + prefix + ' h3', keyPrefix + 'Title');
-    setText('.project-' + prefix + ' > p', keyPrefix + 'Description');
+  function setProject(prefix, keyPrefix, content) {
+    setText('.project-' + prefix + ' .project-tag', content[keyPrefix + 'Tag']);
+    setText('.project-' + prefix + ' h3', content[keyPrefix + 'Title']);
+    setText('.project-' + prefix + ' > p', content[keyPrefix + 'Description']);
     setLeadingText('.project-' + prefix + ' .project-links a', content[keyPrefix + 'LinkLabel']);
     setUrl('.project-' + prefix + ' .project-links a', content[keyPrefix + 'Url'], true);
   }
@@ -96,9 +96,9 @@
     setLeadingText('#projects .section-head .section-kicker', content.experienceKicker);
     setText('#projects .section-head h2', content.experienceHeading);
     setText('#projects .section-head .text', content.experienceIntro);
-    setProject('kfc', 'kfc');
-    setProject('headteacher', 'headteacher');
-    setProject('operations', 'avara');
+    setProject('kfc', 'kfc', content);
+    setProject('headteacher', 'headteacher', content);
+    setProject('operations', 'avara', content);
     setLeadingText('#interests .section-head .section-kicker', content.interestsKicker);
     setText('#interests .section-head h2', content.interestsHeading);
     setText('#interests .section-head .text', content.interestsIntro);
