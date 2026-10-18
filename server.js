@@ -1,199 +1,295 @@
-
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { randomBytes } = require('crypto');
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number.parseInt(process.env.PORT || '3000', 10);
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
+  throw new Error('PORT must be a valid TCP port.');
+}
+
 const FILE = path.join(__dirname, 'index.html');
 const ROBLOX_ID = '3175667757';
-
 const AVATAR_TTL = 10 * 60 * 1000;
 const PROFILE_TTL = 10 * 60 * 1000;
+const UPSTREAM_TIMEOUT_MS = 8000;
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
 let avatarCache = null;
 let avatarAt = 0;
 let profileCache = null;
 let profileAt = 0;
+let avatarRequest = null;
+let profileRequest = null;
+
+function setSecurityHeaders(res, nonce) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+  res.setHeader('Content-Security-Policy', [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "script-src 'self' 'nonce-" + nonce + "' https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js https://unpkg.com/lenis@1.3.26/dist/lenis.min.js",
+    "style-src 'self' 'nonce-" + nonce + "' https://unpkg.com/lenis@1.3.26/dist/lenis.css https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: https://*.rbxcdn.com",
+    "connect-src 'self'",
+    "upgrade-insecure-requests"
+  ].join('; '));
+}
+
+function send(req, res, status, body, contentType, extraHeaders) {
+  const payload = Buffer.isBuffer(body) ? body : Buffer.from(body == null ? '' : String(body));
+  res.statusCode = status;
+  if (contentType) res.setHeader('Content-Type', contentType);
+  if (extraHeaders) {
+    Object.keys(extraHeaders).forEach(function (name) {
+      res.setHeader(name, extraHeaders[name]);
+    });
+  }
+  res.setHeader('Content-Length', String(payload.length));
+  if (req.method === 'HEAD') return res.end();
+  return res.end(payload);
+}
 
 async function getJson(url) {
   const res = await fetch(url, {
-    headers: { 'Accept': 'application/json' }
+    headers: { Accept: 'application/json' },
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
   });
 
   if (!res.ok) {
-    throw new Error('Request failed: ' + res.status);
+    throw new Error('Upstream request failed with status ' + res.status);
+  }
+
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (!contentType.includes('application/json')) {
+    throw new Error('Upstream returned an unexpected content type');
   }
 
   return res.json();
+}
+
+async function readLimited(response, maxBytes) {
+  const lengthHeader = response.headers.get('content-length');
+  const length = lengthHeader === null ? null : Number(lengthHeader);
+  if (length !== null && Number.isFinite(length) && length > maxBytes) {
+    throw new Error('Avatar image exceeds the size limit');
+  }
+  if (!response.body) {
+    throw new Error('Avatar response had no body');
+  }
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const item = await reader.read();
+      if (item.done) break;
+      total += item.value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error('Avatar image exceeds the size limit');
+      }
+      chunks.push(Buffer.from(item.value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return Buffer.concat(chunks, total);
 }
 
 async function getAvatar() {
   if (avatarCache && Date.now() - avatarAt < AVATAR_TTL) {
     return avatarCache;
   }
+  if (avatarRequest) return avatarRequest;
 
-  const meta = await getJson(
-    'https://thumbnails.roblox.com/v1/users/avatar?userIds=' +
-    ROBLOX_ID +
-    '&size=420x420&format=Png&isCircular=false'
-  );
+  avatarRequest = (async function () {
+    const meta = await getJson(
+      'https://thumbnails.roblox.com/v1/users/avatar?userIds=' +
+      ROBLOX_ID +
+      '&size=420x420&format=Png&isCircular=false'
+    );
 
-  const url = meta && meta.data && meta.data[0] &&
-    meta.data[0].imageUrl;
+    const imageUrl = meta && meta.data && meta.data[0] && meta.data[0].imageUrl;
+    if (!imageUrl) throw new Error('No avatar URL was returned');
 
-  if (!url) throw new Error('No avatar url');
+    const parsedImageUrl = new URL(imageUrl);
+    const host = parsedImageUrl.hostname.toLowerCase();
+    const trustedHost = host === 'rbxcdn.com' || host.endsWith('.rbxcdn.com');
+    if (parsedImageUrl.protocol !== 'https:' || !trustedHost ||
+        parsedImageUrl.username || parsedImageUrl.password ||
+        (parsedImageUrl.port && parsedImageUrl.port !== '443')) {
+      throw new Error('Avatar URL failed validation');
+    }
 
-  const img = await fetch(url);
+    const img = await fetch(parsedImageUrl.href, {
+      headers: { Accept: 'image/png, image/webp, image/jpeg' },
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      redirect: 'error'
+    });
 
-  if (!img.ok) throw new Error('Avatar fetch failed');
+    if (!img.ok) throw new Error('Avatar image request failed');
+    const imageType = (img.headers.get('content-type') || '').toLowerCase();
+    if (!/^image\/(png|webp|jpeg)$/.test(imageType)) {
+      throw new Error('Avatar response was not a supported image');
+    }
 
-  avatarCache = Buffer.from(await img.arrayBuffer());
-  avatarAt = Date.now();
+    const buffer = await readLimited(img, MAX_AVATAR_BYTES);
+    avatarCache = buffer;
+    avatarAt = Date.now();
+    return buffer;
+  })();
 
-  return avatarCache;
+  try {
+    return await avatarRequest;
+  } finally {
+    avatarRequest = null;
+  }
 }
 
 async function getProfile() {
   if (profileCache && Date.now() - profileAt < PROFILE_TTL) {
     return profileCache;
   }
+  if (profileRequest) return profileRequest;
 
-  const [user, friends, followers] = await Promise.allSettled([
-    getJson('https://users.roblox.com/v1/users/' + ROBLOX_ID),
-    getJson('https://friends.roblox.com/v1/users/' + ROBLOX_ID + '/friends/count'),
-    getJson('https://friends.roblox.com/v1/users/' + ROBLOX_ID + '/followers/count')
-  ]);
+  profileRequest = (async function () {
+    const results = await Promise.allSettled([
+      getJson('https://users.roblox.com/v1/users/' + ROBLOX_ID),
+      getJson('https://friends.roblox.com/v1/users/' + ROBLOX_ID + '/friends/count'),
+      getJson('https://friends.roblox.com/v1/users/' + ROBLOX_ID + '/followers/count')
+    ]);
 
-  const data = {
-    displayName: user.status === 'fulfilled'
-      ? user.value.displayName : null,
-    username: user.status === 'fulfilled'
-      ? user.value.name : null,
-    description: user.status === 'fulfilled'
-      ? user.value.description : null,
-    friends: friends.status === 'fulfilled'
-      ? friends.value.count : null,
-    followers: followers.status === 'fulfilled'
-      ? followers.value.count : null
-  };
+    const user = results[0];
+    const friends = results[1];
+    const followers = results[2];
+    const data = {
+      displayName: user.status === 'fulfilled' ? user.value.displayName : null,
+      username: user.status === 'fulfilled' ? user.value.name : null,
+      description: user.status === 'fulfilled' ? user.value.description : null,
+      friends: friends.status === 'fulfilled' ? friends.value.count : null,
+      followers: followers.status === 'fulfilled' ? followers.value.count : null
+    };
 
-  if (data.username) {
-    profileCache = data;
-    profileAt = Date.now();
+    if (data.username) {
+      profileCache = data;
+      profileAt = Date.now();
+    }
+    return data;
+  })();
+
+  try {
+    return await profileRequest;
+  } finally {
+    profileRequest = null;
   }
-
-  return data;
 }
 
-const server = http.createServer(async (req, res) => {
-  const url = (req.url || '/').split('?')[0];
+const server = http.createServer(async function (req, res) {
+  const nonce = randomBytes(18).toString('base64');
+  setSecurityHeaders(res, nonce);
 
-  // Discord domain verification
-  if (url === '/.well-known/discord') {
-    res.writeHead(200, {
-      'Content-Type': 'text/plain; charset=utf-8'
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return send(req, res, 405, 'Method not allowed', 'text/plain; charset=utf-8', {
+      Allow: 'GET, HEAD',
+      'Cache-Control': 'no-store'
     });
-    res.end('dh=4e87b56ab4882300b0762ef8c56edc5818f69f2d');
-    return;
   }
 
-  // Favicon route — keep this before the generic HTML handler
-  if (url === '/favicon.svg') {
+  let pathname;
+  try {
+    pathname = new URL(req.url || '/', 'http://localhost').pathname;
+  } catch (_) {
+    return send(req, res, 400, 'Bad request', 'text/plain; charset=utf-8', {
+      'Cache-Control': 'no-store'
+    });
+  }
+
+  if (pathname === '/.well-known/discord') {
+    return send(req, res, 200, 'dh=4e87b56ab4882300b0762ef8c56edc5818f69f2d',
+      'text/plain; charset=utf-8', { 'Cache-Control': 'public, max-age=3600' });
+  }
+
+  if (pathname === '/favicon.svg') {
     const faviconFile = path.join(__dirname, 'favicon.svg');
-
-    console.log('Favicon path:', faviconFile);
-    console.log('Favicon exists:', fs.existsSync(faviconFile));
-
-    return fs.readFile(faviconFile, (err, data) => {
+    return fs.readFile(faviconFile, function (err, data) {
       if (err) {
-        console.error('Favicon error:', err.code, err.message);
-
-        res.writeHead(404, {
-          'Content-Type': 'text/plain; charset=utf-8'
+        console.error('Favicon read failed:', err.code || 'I/O error');
+        return send(req, res, 404, 'Favicon not found', 'text/plain; charset=utf-8', {
+          'Cache-Control': 'no-store'
         });
-
-        res.end('Favicon not found');
-        return;
       }
-
-      res.writeHead(200, {
-        'Content-Type': 'image/svg+xml',
+      return send(req, res, 200, data, 'image/svg+xml; charset=utf-8', {
         'Cache-Control': 'public, max-age=3600'
       });
-
-      res.end(data);
     });
   }
 
-  // Roblox avatar route
-  if (url === '/avatar.png') {
+  if (pathname === '/avatar.png') {
     try {
-      const buf = await getAvatar();
-
-      res.writeHead(200, {
-        'Content-Type': 'image/png',
+      const buffer = await getAvatar();
+      return send(req, res, 200, buffer, 'image/png', {
         'Cache-Control': 'public, max-age=600'
       });
-
-      res.end(buf);
-    } catch (e) {
-      console.error('Avatar error:', e.message);
-
-      res.writeHead(404, {
-        'Content-Type': 'text/plain; charset=utf-8'
+    } catch (err) {
+      console.error('Avatar fetch failed:', err && err.name ? err.name : 'Error');
+      return send(req, res, 502, 'Avatar unavailable', 'text/plain; charset=utf-8', {
+        'Cache-Control': 'no-store',
+        'Retry-After': '30'
       });
-
-      res.end('No avatar');
     }
-
-    return;
   }
 
-  // Roblox profile API
-  if (url === '/api/roblox') {
+  if (pathname === '/api/roblox') {
     try {
       const data = await getProfile();
-
-      res.writeHead(200, {
-        'Content-Type': 'application/json; charset=utf-8',
+      return send(req, res, 200, JSON.stringify(data), 'application/json; charset=utf-8', {
         'Cache-Control': 'public, max-age=300'
       });
-
-      res.end(JSON.stringify(data));
-    } catch (e) {
-      console.error('Roblox API error:', e.message);
-
-      res.writeHead(200, {
-        'Content-Type': 'application/json; charset=utf-8'
+    } catch (err) {
+      console.error('Roblox profile request failed:', err && err.name ? err.name : 'Error');
+      return send(req, res, 503, JSON.stringify({}), 'application/json; charset=utf-8', {
+        'Cache-Control': 'no-store',
+        'Retry-After': '30'
       });
-
-      res.end(JSON.stringify({}));
     }
-
-    return;
   }
 
-  // Serve the existing portfolio page
-  fs.readFile(FILE, (err, data) => {
+  if (pathname !== '/' && pathname !== '/index.html') {
+    return send(req, res, 404, 'Not found', 'text/plain; charset=utf-8', {
+      'Cache-Control': 'no-store'
+    });
+  }
+
+  fs.readFile(FILE, 'utf8', function (err, html) {
     if (err) {
-      console.error('HTML error:', err.message);
-
-      res.writeHead(500, {
-        'Content-Type': 'text/plain; charset=utf-8'
+      console.error('Homepage read failed:', err.code || 'I/O error');
+      return send(req, res, 500, 'Server error', 'text/plain; charset=utf-8', {
+        'Cache-Control': 'no-store'
       });
-
-      res.end('Server error');
-      return;
     }
 
-    res.writeHead(200, {
-      'Content-Type': 'text/html; charset=utf-8'
-    });
+    const securedHtml = html.replace(/<(script|style)\b(?![^>]*\bnonce\s*=)/gi,
+      '<$1 nonce="' + nonce + '"');
 
-    res.end(data);
+    return send(req, res, 200, securedHtml, 'text/html; charset=utf-8', {
+      'Cache-Control': 'no-store'
+    });
   });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log('Portfolio running on port ' + PORT);
+server.listen(PORT, '0.0.0.0', function () {
+  console.log('Portfolio running on configured port.');
 });
