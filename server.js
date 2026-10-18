@@ -726,11 +726,6 @@ const server = http.createServer(async function (req, res) {
       Allow: 'GET, HEAD, POST, DELETE, PUT',
       'Cache-Control': 'no-store'
     });
-server.headersTimeout = 15000;
-server.requestTimeout = 20000;
-server.keepAliveTimeout = 5000;
-server.maxHeadersCount = 100;
-
 
   }
 
@@ -1095,6 +1090,11 @@ server.maxHeadersCount = 100;
     });
   });
 });
+
+server.headersTimeout = 15000;
+server.requestTimeout = 20000;
+server.keepAliveTimeout = 5000;
+server.maxHeadersCount = 100;
 
 server.listen(PORT, '0.0.0.0', function () {
   console.log('Portfolio running on configured port.');
