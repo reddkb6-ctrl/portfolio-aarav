@@ -24,6 +24,47 @@ const MAX_SITE_CONTENT_BODY_BYTES = 32768;
 const MODERATION_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 const MODERATION_LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MODERATION_LOGIN_MAX_FAILURES = 5;
+const SITE_CONTENT_SCHEMA = {
+  siteTitle: { type: 'text', max: 100, default: 'Aarav | Personal Portfolio' },
+  siteDescription: { type: 'text', max: 240, default: "Aarav's personal portfolio — gaming, sports, music and creative projects." },
+  heroName: { type: 'text', max: 50, default: 'Aarav.' },
+  heroIntro: { type: 'text', max: 400, default: 'I play a lot of games, and I love music and singing. Welcome to my corner of the internet.' },
+  aboutText: { type: 'text', max: 700, default: "I'm Aarav. I enjoy gaming, sports and music, and I like bringing creative ideas to life. I'm also interested in teamwork, leadership and helping communities run smoothly." },
+  aboutNoteTitle: { type: 'text', max: 100, default: "What I'm into" },
+  aboutNoteText: { type: 'text', max: 400, default: 'Gaming, sports, music, creative projects and working with people.' },
+  gamesIntro: { type: 'text', max: 300, default: 'A few of the games I enjoy spending time on.' },
+  kfcTag: { type: 'text', max: 140, default: 'Built by me · Restaurant roleplay' },
+  kfcTitle: { type: 'text', max: 100, default: 'KFC' },
+  kfcDescription: { type: 'text', max: 500, default: "A restaurant roleplay game that I built. I own KFC v1–2, which has 7k visits, and I'm developing v3." },
+  kfcUrl: { type: 'url', max: 500, default: 'https://discord.gg/v7GWdmR7Jd' },
+  headteacherTag: { type: 'text', max: 140, default: 'Worked at · School roleplay' },
+  headteacherTitle: { type: 'text', max: 100, default: 'Headteacher' },
+  headteacherDescription: { type: 'text', max: 500, default: 'A school roleplay game where I\'m the headteacher. The campus is owned by Kyle, Harley Dyson and Simeon.' },
+  headteacherUrl: { type: 'url', max: 500, default: 'https://discord.gg/4M5FFZ6EZ4' },
+  avaraTag: { type: 'text', max: 140, default: 'Worked at · Custom airline' },
+  avaraTitle: { type: 'text', max: 100, default: 'AVARA' },
+  avaraDescription: { type: 'text', max: 500, default: 'I work as Head of Ground Operations at AVARA, a custom airline on Roblox.' },
+  avaraUrl: { type: 'url', max: 500, default: 'https://discord.gg/V4qswt2qfe' },
+  interestsIntro: { type: 'text', max: 300, default: 'A few things I enjoy and skills I bring to my projects.' },
+  gamingTitle: { type: 'text', max: 100, default: 'Gaming' },
+  gamingDescription: { type: 'text', max: 300, default: 'I enjoy exploring different games, challenges and experiences.' },
+  sportsTitle: { type: 'text', max: 100, default: 'Sports' },
+  sportsDescription: { type: 'text', max: 300, default: 'I enjoy following sports, watching matches and getting involved in the game.' },
+  musicTitle: { type: 'text', max: 100, default: 'Music' },
+  musicDescription: { type: 'text', max: 300, default: 'I enjoy singing and playing piano, and using music as a creative outlet.' },
+  leadershipTitle: { type: 'text', max: 100, default: 'HR & Leadership' },
+  leadershipDescription: { type: 'text', max: 300, default: 'I enjoy supporting people, helping teams work well together and keeping communities organised.' },
+  socialsIntro: { type: 'text', max: 300, default: 'Choose a platform below, or find me directly on Discord.' },
+  discordProfileTitle: { type: 'text', max: 100, default: 'Find me on Discord' },
+  discordProfileDescription: { type: 'text', max: 300, default: 'Open my profile or copy my user ID if you need it.' },
+  discordProfileUrl: { type: 'url', max: 500, default: 'https://discord.com/users/1015328404494635038' },
+  socialRobloxUrl: { type: 'url', max: 500, default: 'https://www.roblox.com/users/3175667757/profile' },
+  socialDiscordUrl: { type: 'url', max: 500, default: 'https://discord.com/users/1015328404494635038' },
+  socialTikTokUrl: { type: 'url', max: 500, default: 'https://www.tiktok.com/@aarav_vibezz' },
+  socialYouTubeUrl: { type: 'url', max: 500, default: 'https://www.youtube.com/@officialvibesyt12' },
+  socialSnapchatUrl: { type: 'url', max: 500, default: 'https://www.snapchat.com/add/aarav_vibezz' },
+  socialSignalUrl: { type: 'url', max: 500, default: 'https://signal.me/#eu/iNqqmPNqYWcdWaxe8cCzZh_jaYwcChGb3A2CMpk3HSxeohQQ4yxERoFcghJn1oCb' }
+};
 const PROFILE_REFRESH_COOLDOWN_MS = 30 * 1000;
 
 let avatarCache = null;
