@@ -155,12 +155,52 @@
       .back-to-top{right:16px;bottom:16px;width:44px;height:44px}
     }
     @media(prefers-reduced-motion:reduce){#rbx-refresh.is-loading svg{animation:none!important}}
+
+    /* Refined interaction details */
+    .roblox-avatar-link{position:relative;display:block;flex:0 0 180px;color:inherit;outline-offset:4px}
+    .avatar-open-indicator{position:absolute;right:10px;bottom:10px;width:34px;height:34px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.22);border-radius:11px;background:rgba(8,11,22,.78);color:#fff;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;backdrop-filter:blur(10px)}
+    .avatar-open-indicator svg{width:16px;height:16px}
+    .roblox-avatar-link:hover .avatar-open-indicator,.roblox-avatar-link:focus-visible .avatar-open-indicator{opacity:1;transform:translateY(0)}
+    .copy-icon{display:inline-grid;place-items:center;width:27px;height:27px;margin-left:2px;border:1px solid rgba(169,199,255,.2);border-radius:8px;background:rgba(255,255,255,.035);color:var(--blue-soft);cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+    .copy-icon svg{width:13px;height:13px}
+    .copy-icon:hover{color:#fff;border-color:rgba(169,199,255,.45);background:rgba(79,140,255,.14)}
+    .handle{gap:7px}
+    .discord-profile-card{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:25px;padding:23px;border:1px solid rgba(169,199,255,.15);border-radius:22px;background:radial-gradient(ellipse at 0 0,rgba(79,140,255,.12),transparent 52%),linear-gradient(145deg,rgba(20,26,51,.92),rgba(12,16,33,.88));box-shadow:0 20px 50px -38px rgba(79,140,255,.38);overflow:hidden}
+    .discord-profile-main{display:flex;align-items:center;gap:16px;min-width:0}
+    .discord-profile-icon{display:grid;place-items:center;flex:0 0 52px;width:52px;height:52px;border:1px solid rgba(169,199,255,.2);border-radius:16px;background:linear-gradient(135deg,rgba(79,140,255,.2),rgba(232,56,79,.14));color:#c9d9ff}
+    .discord-profile-icon svg{width:24px;height:24px}
+    .discord-profile-copy{min-width:0}
+    .discord-eyebrow{display:block;margin-bottom:3px;color:var(--blue-soft);font-size:.7rem;font-weight:600;letter-spacing:.15em}
+    .discord-profile-copy h3{margin:0 0 3px;font-size:1.18rem;font-weight:500;letter-spacing:-.02em}
+    .discord-profile-copy p{color:var(--muted);font-size:.9rem;line-height:1.5}
+    .discord-profile-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;flex-shrink:0}
+    .discord-profile-actions .btn{min-height:42px;white-space:nowrap}
+    .discord-profile-actions svg{width:16px;height:16px}
+    .copy-status{min-height:1.2em;color:var(--muted);font-size:.82rem}
+    .discord-profile-card .copy-status{position:absolute;right:23px;bottom:3px}
+    .clipboard-helper{position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+    @media(hover:hover){.discord-profile-card{transition:border-color .25s,box-shadow .25s,transform .25s}.discord-profile-card:hover{border-color:rgba(169,199,255,.28);box-shadow:0 24px 54px -36px rgba(79,140,255,.45)}}
+    @media(max-width:760px){
+      .profile{grid-template-columns:1fr;gap:18px}
+      .roblox-avatar-link{width:min(180px,100%);flex-basis:auto;justify-self:center}
+      .discord-profile-card{align-items:stretch;flex-direction:column;gap:16px;padding:19px}
+      .discord-profile-actions{display:grid;grid-template-columns:1fr;width:100%}
+      .discord-profile-actions .btn{width:100%;justify-content:center}
+      .discord-profile-card .copy-status{position:static;margin-top:-10px}
+    }
+    @media(max-width:420px){
+      .bar{gap:10px}
+      .logo{font-size:1.08rem;gap:8px}
+      .logo-avatar{width:34px;height:34px;flex-basis:34px}
+      .menu-toggle{padding:8px 10px}
+      .profile{padding:16px;border-radius:21px}
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header class="bar" id="top">
-      <a href="#home" class="logo" aria-label="Aarav home"><img class="logo-avatar" src="data:image/webp;base64,UklGRhAFAABXRUJQVlA4IAQFAACwGACdASpgAGAAPrlQnkunJKmsrHbcuZAXCUAZZITRD/rfN3vzeqC7JaZCjYBy8dMM0QgFhq6Juk3f+3KUJlrWlzgDfxeCqHJX3X6L0f2vmnrviNY3OWdmR9EPBG7lOsA9uVnfwx0IlKVKfvwYDgx98BCDd9mEDa+xSrxdRBpDxa9Q5bLT1Y9wkBeb2kvBojB6ehMn5p3/sZvpJqd3VKe4Kd+C5Vy+31/VK8AMrPTxL7xKVISKz9vYRejrTQtRC1F8B5dRrBYQwBlmJ0kRgAD+8DR7LR5L77kv4niS3qnNi0yOQHOjDWOMRSYgwfn1/TyO+FAXscOYS6VY8jxUL5aATIukmzyhbnrIaYPr0sl4eX4mcFJEo2fo/DJJMeMcKiTThx6GDY4nPy54FFuGl8Azt4Q1KAakpwWKVtXU1y2YleNfaRviMXytwkcAkvX1Ty1u8xiYDQ1RD1JuAC7BgPF6kDe2xaNytl0okC6+dTMyO6qOaHpt0n/CD4ARaZVACqe0n+QPiiBgfejTpw/JMLSNH1jarzJVPFOs1gWTxJjcOZ9VLYLMm31RWpdEWYKKZtGs/+aQ8Ve/DcPBb0yKvGvw7ZYXTMdjEZu+H3JU3bDniwV+XLfkfZM3AswsGMH7hlOQIMCvjHRbVunEOVzvORcSXwpCS8+rIXuzBDiXD5mkRWI2ShhBK+zXu+rr/tTFcL9exZuo7OiWPJoC5Mj76PeTz21TfdCzIe0AIXnMJd7FRSYkUytUioHc/iJ+4wXLKslNa6H8HECmA7rSLoM/uQXxE2nkxELpZpTeR6h+HGTH6hS/TUzaQ82zwuZcN8QlOHSecgOFk7C93+w40TkMl+XYxHGi6YInAhUC1FYxBhgL0zjmNZph3sNA7Ei22EfqkG+32HAUA4Lo66UPGu9nPhT6+0CwjQOq9vnMXjToC6mnaosvjgm4KoBmZ/3dWQ9LynK32DyZS2CWjURlRzcS/1HlvvGFwzjqhoEgLBQ2d9eKP/Z8ris/7nkcYo88n4jlzfazglrY+2D4JIYB4pq6c2RMZeW15i301WVyjl2pXvWs6Dswh98cLShG4IIuzCudqT7jgbzULxVwDTJZ89xaRXa8SXMGAYmunwDpwESWZkCwwDUeAEaBY1jw82KWBPsQF3SraamZPxxYIidkBf4ztgiOHlhhrNhXFGROLzavBJah0P7zszN9/Hhfn+8V9h+AvOC6BNqoRfbTn4bXQNNrYjJE0vfcXFq6B2nq2MHieqP1IAnPt9+XRcjgMd525+Vgm6V43OuiftxxFnE31H6lwUU+EL3tFu9eEANekKKCCPfk1OxUD+RKtUBWx0ORtkSK5fu/9qstbs5YXkf1J10BPmjXfGJDoylyQOqM7byh+Hm7wAKA87Aq6P7del92RAizThapdCb6MlGadnr6rJKCx9Ze6LY1liqQ8wbVLbQJgeSih4ezO0lySN23CEglUBnHXTf3H4j5vyaDSK9EZsetN/1s2KInVPxzUzJ/LK/7rKWkhMvgpgfbSalKPf2JyQBsvn26YBZO2T4ChIgiwh9pq3L7Y89R9h6YInQNTXeCNpq7wFKNARb7HBIJRJytLLhKZAtFnuFN+gfuUNjHJuI2Ix+fxjpIymclTgC20IvwCA12M0peV6yfcTuDv/edQ12Z1MTIJ5fbuaAkxvf0pU+yAFZimZNbZo2/wlkD5/3Qi3gm5cisgAA==" alt="" width="38" height="38" decoding="async">Aarav</a>
+      <a href="#home" class="logo" aria-label="Aarav home"><img class="logo-avatar" src="data:image/webp;base64,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" alt="" width="38" height="38" decoding="async">Aarav</a>
       <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">Menu ☰</button>
       <nav class="nav" id="site-nav" aria-label="Main navigation">
         <a href="#about">About</a><a href="#games">Games</a><a href="#roblox">Roblox</a><a href="#projects">Experience</a><a href="#interests">Interests</a><a href="#socials">Socials</a>
@@ -194,13 +234,14 @@
       <section id="roblox" class="reveal">
         <div class="section-kicker">Find me in-game</div><h2>My Roblox profile</h2><p class="text">Take a look at my Roblox profile and what I'm up to.</p>
         <div class="profile profile-restored">
-          <div class="roblox-avatar-wrap">
-           <img class="roblox-avatar" src="/avatar.png" alt="Aarav’s Roblox avatar" loading="lazy">
-          </div>
+          <a class="roblox-avatar-wrap roblox-avatar-link" href="https://www.roblox.com/users/3175667757/profile" target="_blank" rel="noopener noreferrer" aria-label="Open Aarav’s Roblox profile">
+            <img class="roblox-avatar" src="/avatar.png" alt="Aarav’s Roblox avatar" loading="lazy">
+            <span class="avatar-open-indicator" aria-hidden="true"><i data-lucide="external-link"></i></span>
+          </a>
           <div class="profile-content">
             <div class="profile-info">
               <h3 id="rbx-name">Aarav</h3>
-              <div class="handle">@<span id="rbx-user">reddkb6</span></div>
+              <div class="handle">@<span id="rbx-user">reddkb6</span><button class="copy-icon" id="rbx-copy-username" type="button" aria-label="Copy Roblox username" title="Copy username"><i data-lucide="copy" aria-hidden="true"></i></button></div>
               <div class="stats" id="rbx-stats" hidden>
                 <div class="stat"><b id="rbx-friends">—</b><span>Friends</span></div>
                 <div class="stat"><b id="rbx-followers">—</b><span>Followers</span></div>
@@ -258,7 +299,22 @@
         </div>
       </section>
       <section id="socials" class="reveal">
-        <div class="section-kicker">Stay connected</div><h2>Socials</h2><p class="text">You can find me on these platforms.</p>
+        <div class="section-kicker">Stay connected</div><h2>Socials</h2><p class="text">Choose a platform below, or find me directly on Discord.</p>
+        <div class="discord-profile-card">
+          <div class="discord-profile-main">
+            <span class="discord-profile-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>
+            <div class="discord-profile-copy">
+              <span class="discord-eyebrow">LET’S CONNECT</span>
+              <h3>Find me on Discord</h3>
+              <p>Open my profile or copy my user ID if you need it.</p>
+            </div>
+          </div>
+          <div class="discord-profile-actions">
+            <a class="btn btn-main" href="https://discord.com/users/1015328404494635038" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link" aria-hidden="true"></i>Open Discord profile</a>
+            <button class="btn btn-line" id="discord-copy-id" type="button"><i data-lucide="copy" aria-hidden="true"></i>Copy user ID</button>
+          </div>
+          <p class="copy-status" id="discord-copy-status" role="status" aria-live="polite"></p>
+        </div>
         <div class="links">
           <a class="link" href="https://www.roblox.com/users/3175667757/profile" target="_blank" rel="noopener noreferrer"><span class="social-icon"><i data-lucide="gamepad-2" aria-hidden="true"></i></span>Roblox <span class="social-arrow">↗</span></a>
           <a class="link" href="https://discord.com/users/1015328404494635038" target="_blank" rel="noopener noreferrer"><span class="social-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>Discord <span class="social-arrow">↗</span></a>
@@ -382,7 +438,8 @@
         if(pendingActiveId){
           var target=document.getElementById(pendingActiveId);
           var targetRect=target&&target.getBoundingClientRect();
-          if(atBottom||(targetRect&&(targetRect.bottom<line||(targetRect.top<=line&&targetRect.bottom>line)))){
+          var targetIsLast=sections.length&&pendingActiveId===sections[sections.length-1].id;
+          if((atBottom&&targetIsLast)||(targetRect&&(targetRect.bottom<line||(targetRect.top<=line&&targetRect.bottom>line)))){
             pendingActiveId='';
             if(pendingActiveTimeout)window.clearTimeout(pendingActiveTimeout);
           }else{
@@ -445,17 +502,50 @@
         try{window.history.replaceState(null,'',window.location.pathname+window.location.search)}catch(e){}
       });
 
+      function copyText(value,statusElement,successText){
+        function reportSuccess(){
+          if(statusElement)statusElement.textContent=successText;
+        }
+        function fallbackCopy(){
+          var helper=document.createElement('textarea');
+          helper.className='clipboard-helper';
+          helper.value=value;
+          helper.setAttribute('readonly','');
+          document.body.appendChild(helper);
+          helper.select();
+          var ok=false;
+          try{ok=document.execCommand('copy')}catch(e){}
+          helper.remove();
+          if(ok){reportSuccess();return true}
+          if(statusElement)statusElement.textContent='Copy is unavailable here. You can select and copy: '+value;
+          return false;
+        }
+        if(navigator.clipboard&&typeof navigator.clipboard.writeText==='function'){
+          navigator.clipboard.writeText(value).then(reportSuccess).catch(fallbackCopy);
+        }else fallbackCopy();
+      }
+      var copyUsernameButton=document.getElementById('rbx-copy-username');
+      if(copyUsernameButton)copyUsernameButton.addEventListener('click',function(){
+        var username=(document.getElementById('rbx-user').textContent||'').trim();
+        copyText(username,profileStatus,'Roblox username copied.');
+      });
+      var discordCopyButton=document.getElementById('discord-copy-id');
+      var discordCopyStatus=document.getElementById('discord-copy-status');
+      if(discordCopyButton)discordCopyButton.addEventListener('click',function(){
+        copyText('1015328404494635038',discordCopyStatus,'Discord user ID copied.');
+      });
+
       /* Robust Roblox profile loading, with manual retry and accessible status. */
       var fmt=function(n){return Number(n).toLocaleString('en-GB')};
       var refreshButton=document.getElementById('rbx-refresh');
       var profileStatus=document.getElementById('rbx-status');
       var profileSection=document.querySelector('.profile-restored');
       var hasProfileLoaded=false;
-      function loadRobloxProfile(){
+      function loadRobloxProfile(manualRefresh){
         if(refreshButton){refreshButton.disabled=true;refreshButton.classList.add('is-loading');refreshButton.setAttribute('aria-busy','true')}
         if(profileStatus)profileStatus.textContent='Loading profile details…';
         if(profileSection)profileSection.setAttribute('aria-busy','true');
-        fetch('/api/roblox',{headers:{Accept:'application/json'},cache:'no-store'})
+        fetch('/api/roblox'+(manualRefresh?'?refresh=1':''),{headers:{Accept:'application/json'},cache:'no-store'})
           .then(function(response){if(!response.ok)throw new Error('Profile endpoint unavailable');return response.json()})
           .then(function(data){
             if(!data||(!data.displayName&&!data.username&&typeof data.friends!=='number'&&typeof data.followers!=='number'&&!data.description)){
@@ -470,7 +560,7 @@
             }
             if(data.description)document.getElementById('rbx-bio').textContent=data.description;
             hasProfileLoaded=true;
-            if(profileStatus)profileStatus.textContent='Profile details updated.';
+            if(profileStatus)profileStatus.textContent=manualRefresh?'Profile details refreshed.':'Profile details loaded.';
           })
           .catch(function(){
             if(profileStatus)profileStatus.textContent=hasProfileLoaded?'Could not refresh right now. Showing the last loaded details.':'Profile details are temporarily unavailable. Please try again.';
@@ -480,8 +570,8 @@
             if(profileSection)profileSection.removeAttribute('aria-busy');
           });
       }
-      if(refreshButton)refreshButton.addEventListener('click',loadRobloxProfile);
-      loadRobloxProfile();
+      if(refreshButton)refreshButton.addEventListener('click',function(){loadRobloxProfile(true)});
+      loadRobloxProfile(false);
     })();
   </script>
 </body>
