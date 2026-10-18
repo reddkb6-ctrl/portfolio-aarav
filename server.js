@@ -405,7 +405,7 @@ function moderationCookie(token, req, maxAge) {
     'SameSite=Strict',
     'Max-Age=' + String(maxAge)
   ];
-  if (isSecureRequest(req)) attributes.push('Secure');
+  if (process.env.NODE_ENV === 'production' || isSecureRequest(req)) attributes.push('Secure');
   return attributes.join('; ');
 }
 
@@ -726,6 +726,12 @@ const server = http.createServer(async function (req, res) {
       Allow: 'GET, HEAD, POST, DELETE, PUT',
       'Cache-Control': 'no-store'
     });
+server.headersTimeout = 15000;
+server.requestTimeout = 20000;
+server.keepAliveTimeout = 5000;
+server.maxHeadersCount = 100;
+
+
   }
 
   let requestUrl;
@@ -928,15 +934,8 @@ const server = http.createServer(async function (req, res) {
   }
 
   if (pathname === '/api/reviews' && req.method === 'POST') {
-    const origin = req.headers.origin;
-    if (origin) {
-      try {
-        if (new URL(origin).host !== req.headers.host) {
-          return sendJson(req, res, 403, { error: 'Cross-origin submissions are not allowed.' });
-        }
-      } catch (_) {
-        return sendJson(req, res, 403, { error: 'Invalid request origin.' });
-      }
+    if (!hasSameOrigin(req)) {
+      return sendJson(req, res, 403, { error: 'Review submissions must come from this website.' });
     }
 
     let payload;
