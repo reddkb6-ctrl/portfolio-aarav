@@ -51,13 +51,23 @@
       description: 'The main heading and introduction on your portfolio homepage.',
       fields: [
         { key: 'heroName', label: 'Name in the main heading', type: 'text' },
-        { key: 'heroIntro', label: 'Introduction text', type: 'textarea', wide: true }
+        { key: 'heroEyebrow', label: 'Small label above the heading', type: 'text' },
+        { key: 'heroIntro', label: 'Introduction text', type: 'textarea', wide: true },
+        { key: 'heroPrimaryCta', label: 'Primary button label', type: 'text' },
+        { key: 'heroPrimaryHref', label: 'Primary button destination', type: 'anchor', hint: 'Choose an existing section ID, such as #projects.' },
+        { key: 'heroSecondaryCta', label: 'Secondary button label', type: 'text' },
+        { key: 'heroSecondaryHref', label: 'Secondary button destination', type: 'anchor', hint: 'Choose an existing section ID, such as #socials.' },
+        { key: 'heroMetaOne', label: 'Small detail · one', type: 'text' },
+        { key: 'heroMetaTwo', label: 'Small detail · two', type: 'text' },
+        { key: 'heroMetaThree', label: 'Small detail · three', type: 'text' }
       ]
     },
     {
       title: 'About section',
       description: 'Your introduction and the small note card next to it.',
       fields: [
+        { key: 'aboutKicker', label: 'Small section label', type: 'text' },
+        { key: 'aboutHeading', label: 'Section heading', type: 'text' },
         { key: 'aboutText', label: 'About paragraph', type: 'textarea', wide: true },
         { key: 'aboutNoteTitle', label: 'Note card heading', type: 'text' },
         { key: 'aboutNoteText', label: 'Note card text', type: 'textarea', wide: true }
@@ -65,8 +75,39 @@
     },
     {
       title: 'Games section',
-      description: 'The sentence shown below the Games heading.',
-      fields: [{ key: 'gamesIntro', label: 'Games introduction', type: 'textarea', wide: true }]
+      description: 'Edit the heading, introduction and each game row.',
+      fields: [
+        { key: 'gamesKicker', label: 'Small section label', type: 'text' },
+        { key: 'gamesHeading', label: 'Section heading', type: 'text' },
+        { key: 'gamesIntro', label: 'Games introduction', type: 'textarea', wide: true },
+        { key: 'gameOneTitle', label: 'Game one · title', type: 'text' },
+        { key: 'gameOneDescription', label: 'Game one · description', type: 'textarea' },
+        { key: 'gameOneType', label: 'Game one · category', type: 'text' },
+        { key: 'gameTwoTitle', label: 'Game two · title', type: 'text' },
+        { key: 'gameTwoDescription', label: 'Game two · description', type: 'textarea' },
+        { key: 'gameTwoType', label: 'Game two · category', type: 'text' },
+        { key: 'gameThreeTitle', label: 'Game three · title', type: 'text' },
+        { key: 'gameThreeDescription', label: 'Game three · description', type: 'textarea' },
+        { key: 'gameThreeType', label: 'Game three · category', type: 'text' }
+      ]
+    },
+    {
+      title: 'Roblox section',
+      description: 'Edit the heading and introduction above your Roblox profile card.',
+      fields: [
+        { key: 'robloxKicker', label: 'Small section label', type: 'text' },
+        { key: 'robloxHeading', label: 'Section heading', type: 'text' },
+        { key: 'robloxIntro', label: 'Introduction', type: 'textarea', wide: true }
+      ]
+    },
+    {
+      title: 'Experience section heading',
+      description: 'Edit the section heading and introduction above your experience cards.',
+      fields: [
+        { key: 'experienceKicker', label: 'Small section label', type: 'text' },
+        { key: 'experienceHeading', label: 'Section heading', type: 'text' },
+        { key: 'experienceIntro', label: 'Introduction', type: 'textarea', wide: true }
+      ]
     },
     {
       title: 'Experience · KFC',
@@ -75,6 +116,7 @@
         { key: 'kfcTag', label: 'Small category label', type: 'text' },
         { key: 'kfcTitle', label: 'Card title', type: 'text' },
         { key: 'kfcDescription', label: 'Description', type: 'textarea', wide: true },
+        { key: 'kfcLinkLabel', label: 'Card link label', type: 'text' },
         { key: 'kfcUrl', label: 'Card link URL', type: 'url', hint: 'Use a full HTTPS link. Leave blank to hide the card link.', wide: true }
       ]
     },
@@ -85,6 +127,7 @@
         { key: 'headteacherTag', label: 'Small category label', type: 'text' },
         { key: 'headteacherTitle', label: 'Card title', type: 'text' },
         { key: 'headteacherDescription', label: 'Description', type: 'textarea', wide: true },
+        { key: 'headteacherLinkLabel', label: 'Card link label', type: 'text' },
         { key: 'headteacherUrl', label: 'Card link URL', type: 'url', hint: 'Use a full HTTPS link. Leave blank to hide the card link.', wide: true }
       ]
     },
@@ -95,6 +138,7 @@
         { key: 'avaraTag', label: 'Small category label', type: 'text' },
         { key: 'avaraTitle', label: 'Card title', type: 'text' },
         { key: 'avaraDescription', label: 'Description', type: 'textarea', wide: true },
+        { key: 'avaraLinkLabel', label: 'Card link label', type: 'text' },
         { key: 'avaraUrl', label: 'Card link URL', type: 'url', hint: 'Use a full HTTPS link. Leave blank to hide the card link.', wide: true }
       ]
     },
@@ -102,6 +146,8 @@
       title: 'Interests and skills',
       description: 'Edit the introduction and each of the four interest cards.',
       fields: [
+        { key: 'interestsKicker', label: 'Small section label', type: 'text' },
+        { key: 'interestsHeading', label: 'Section heading', type: 'text' },
         { key: 'interestsIntro', label: 'Section introduction', type: 'textarea', wide: true },
         { key: 'gamingTitle', label: 'Gaming · title', type: 'text' },
         { key: 'gamingDescription', label: 'Gaming · description', type: 'textarea' },
@@ -117,7 +163,15 @@
       title: 'Socials and contact',
       description: 'Update your Socials introduction, Discord card and public profile links.',
       fields: [
+        { key: 'socialsKicker', label: 'Small section label', type: 'text' },
+        { key: 'socialsHeading', label: 'Section heading', type: 'text' },
         { key: 'socialsIntro', label: 'Socials introduction', type: 'textarea', wide: true },
+        { key: 'socialRobloxLabel', label: 'Roblox display label', type: 'text' },
+        { key: 'socialDiscordLabel', label: 'Discord display label', type: 'text' },
+        { key: 'socialTikTokLabel', label: 'TikTok display label', type: 'text' },
+        { key: 'socialYouTubeLabel', label: 'YouTube display label', type: 'text' },
+        { key: 'socialSnapchatLabel', label: 'Snapchat display label', type: 'text' },
+        { key: 'socialSignalLabel', label: 'Signal display label', type: 'text' },
         { key: 'discordProfileTitle', label: 'Discord card heading', type: 'text' },
         { key: 'discordProfileDescription', label: 'Discord card description', type: 'textarea', wide: true },
         { key: 'discordProfileUrl', label: 'Discord profile card URL', type: 'url', wide: true },
@@ -322,14 +376,25 @@
 
   function maxLengthFor(key) {
     var limits = {
-      siteTitle: 100, siteDescription: 240, heroName: 50, heroIntro: 400,
-      aboutText: 700, aboutNoteTitle: 100, aboutNoteText: 400, gamesIntro: 300,
-      kfcTag: 140, kfcTitle: 100, kfcDescription: 500, headteacherTag: 140,
-      headteacherTitle: 100, headteacherDescription: 500, avaraTag: 140,
-      avaraTitle: 100, avaraDescription: 500, interestsIntro: 300,
+      siteTitle: 100, siteDescription: 240, heroName: 50, heroEyebrow: 100,
+      heroIntro: 400, heroPrimaryCta: 100, heroPrimaryHref: 30, heroSecondaryCta: 100,
+      heroSecondaryHref: 30, heroMetaOne: 100, heroMetaTwo: 100, heroMetaThree: 100,
+      aboutKicker: 100, aboutHeading: 100, aboutText: 700, aboutNoteTitle: 100,
+      aboutNoteText: 400, gamesKicker: 100, gamesHeading: 100, gamesIntro: 300,
+      gameOneTitle: 100, gameOneDescription: 300, gameOneType: 100,
+      gameTwoTitle: 100, gameTwoDescription: 300, gameTwoType: 100,
+      gameThreeTitle: 100, gameThreeDescription: 300, gameThreeType: 100,
+      robloxKicker: 100, robloxHeading: 100, robloxIntro: 300,
+      experienceKicker: 140, experienceHeading: 100, experienceIntro: 300,
+      kfcTag: 140, kfcTitle: 100, kfcDescription: 500, kfcLinkLabel: 120,
+      headteacherTag: 140, headteacherTitle: 100, headteacherDescription: 500, headteacherLinkLabel: 120,
+      avaraTag: 140, avaraTitle: 100, avaraDescription: 500, avaraLinkLabel: 120,
+      interestsKicker: 100, interestsHeading: 100, interestsIntro: 300,
       gamingTitle: 100, gamingDescription: 300, sportsTitle: 100,
       sportsDescription: 300, musicTitle: 100, musicDescription: 300,
-      leadershipTitle: 100, leadershipDescription: 300, socialsIntro: 300,
+      leadershipTitle: 100, leadershipDescription: 300, socialsKicker: 100, socialsHeading: 100,
+      socialsIntro: 300, socialRobloxLabel: 80, socialDiscordLabel: 80,
+      socialTikTokLabel: 80, socialYouTubeLabel: 80, socialSnapchatLabel: 80, socialSignalLabel: 80,
       discordProfileTitle: 100, discordProfileDescription: 300
     };
     return limits[key] || 500;
