@@ -87,6 +87,7 @@ async function readJsonBody(req, maxBytes) {
   }
   const declaredLength = Number(req.headers['content-length'] || 0);
   if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    req.resume();
     const error = new Error('Request body is too large.');
     error.statusCode = 413;
     throw error;
