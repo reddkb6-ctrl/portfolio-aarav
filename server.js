@@ -141,25 +141,46 @@ function withReviewWriteLock(operation) {
   return result;
 }
 
+async function writeReviewsToDisk(reviews) {
+  const directory = path.dirname(REVIEW_FILE);
+  await fs.promises.mkdir(directory, { recursive: true });
+  const temporaryPath = REVIEW_FILE + '.' + randomBytes(8).toString('hex') + '.tmp';
+  try {
+    await fs.promises.writeFile(temporaryPath, JSON.stringify(reviews, null, 2), {
+      encoding: 'utf8',
+      mode: 0o600
+    });
+    await fs.promises.rename(temporaryPath, REVIEW_FILE);
+  } catch (error) {
+    await fs.promises.unlink(temporaryPath).catch(function () {});
+    throw error;
+  }
+}
+
 function saveReview(review) {
   return withReviewWriteLock(async function () {
     const reviews = await readReviews();
     reviews.unshift(review);
     const retained = reviews.slice(0, MAX_STORED_REVIEWS);
-    const directory = path.dirname(REVIEW_FILE);
-    await fs.promises.mkdir(directory, { recursive: true });
-    const temporaryPath = REVIEW_FILE + '.' + randomBytes(8).toString('hex') + '.tmp';
-    try {
-      await fs.promises.writeFile(temporaryPath, JSON.stringify(retained, null, 2), {
-        encoding: 'utf8',
-        mode: 0o600
-      });
-      await fs.promises.rename(temporaryPath, REVIEW_FILE);
-    } catch (error) {
-      await fs.promises.unlink(temporaryPath).catch(function () {});
-      throw error;
-    }
+    await writeReviewsToDisk(retained);
     return retained;
+  });
+}
+
+function mutateStoredReview(id, action) {
+  return withReviewWriteLock(async function () {
+    const reviews = await readReviews();
+    const index = reviews.findIndex(function (review) { return review.id === id; });
+    if (index < 0) return null;
+    let result;
+    if (action === 'delete') {
+      result = reviews.splice(index, 1)[0];
+    } else {
+      reviews[index].hidden = action === 'hide';
+      result = reviews[index];
+    }
+    await writeReviewsToDisk(reviews);
+    return result;
   });
 }
 
