@@ -400,7 +400,7 @@ function isSecureRequest(req) {
 function moderationCookie(token, req, maxAge) {
   const attributes = [
     'portfolio_moderator=' + token,
-    'Path=/',
+    'Path=/api',
     'HttpOnly',
     'SameSite=Strict',
     'Max-Age=' + String(maxAge)
