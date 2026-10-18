@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { randomBytes } = require('crypto');
+const { randomBytes, createHash, timingSafeEqual } = require('crypto');
 
 const PORT = Number.parseInt(process.env.PORT || '3000', 10);
 if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
