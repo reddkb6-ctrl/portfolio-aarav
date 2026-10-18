@@ -111,6 +111,15 @@
     @media(prefers-reduced-motion:reduce){
       .reveal .profile,.reveal .about-grid>*,.reveal .links .link{opacity:1;transform:none;transition:none}
     }
+    .interests-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:28px}
+    .interest-card{position:relative;isolation:isolate;overflow:hidden;min-height:218px;padding:23px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,26,51,.82),rgba(15,19,41,.72));transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+    .interest-card:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 100% 0,rgba(79,140,255,.2),transparent 48%),radial-gradient(circle at 0 100%,rgba(232,56,79,.14),transparent 48%);opacity:.7;transition:opacity .25s ease}
+    .interest-card:hover{transform:translateY(-4px);border-color:rgba(141,180,255,.4);box-shadow:0 18px 38px -28px rgba(79,140,255,.65)}
+    .interest-card:hover:before{opacity:1}
+    .interest-icon{display:flex;align-items:center;justify-content:center;width:46px;height:46px;margin-bottom:21px;border:1px solid rgba(169,199,255,.15);border-radius:14px;background:linear-gradient(145deg,rgba(79,140,255,.14),rgba(232,56,79,.1));color:var(--blue-soft)}
+    .interest-icon svg{width:22px;height:22px}
+    .interest-card h3{position:relative;margin:0 0 9px;font-size:1.06rem;font-weight:500;letter-spacing:-.015em}
+    .interest-card p{position:relative;margin:0;color:var(--muted);font-size:.94rem;line-height:1.65}
     @media(max-width:980px) and (min-width:761px){.bar{gap:14px}.nav{gap:3px;font-size:.86rem}.nav a{padding:8px 9px}}
     @media(max-width:760px){.wrap{width:min(var(--wrap),calc(100% - 34px))}.bar{padding:15px 0;gap:12px}.menu-toggle{display:inline-flex;flex-shrink:0}.nav{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;flex-direction:column;align-items:stretch;gap:4px;padding:9px;border:1px solid var(--line);border-radius:15px;background:rgba(15,19,41,.98);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 18px 45px rgba(0,0,0,.3)}.nav.open{display:flex}.nav a{justify-content:flex-start;min-height:44px;padding:11px 13px;border-radius:9px}.nav a.active:after{display:none}.nav a.active{background:rgba(79,140,255,.1)}.hero{min-height:530px;padding:70px 0 85px}.hero:after{right:-110px;top:18%}.hero-meta{margin-top:34px}.about-grid{grid-template-columns:1fr;gap:16px}.profile{grid-template-columns:1fr;padding:18px}.roblox-avatar-wrap{width:min(180px,100%)}.profile-content{align-items:flex-start;flex-direction:column;gap:16px;padding:0}.profile-actions{width:100%}.profile-actions .btn{width:100%}.projects{grid-template-columns:1fr}.project{min-height:330px}section{padding:62px 0}.section-head{display:block}.section-note{margin-top:8px}}
     @media(max-width:500px){body{font-size:16px}.wrap{width:calc(100% - 30px)}.hero{min-height:500px;padding:56px 0 70px}h1{letter-spacing:-.055em}.btn{padding:11px 16px}.games li{grid-template-columns:1fr;gap:10px;align-items:start}.type{justify-self:start}.project{padding:21px;min-height:315px}.links{gap:9px}.link{padding:10px 12px}.footer-inner{align-items:flex-start;flex-direction:column;gap:10px}}
@@ -123,7 +132,7 @@
       <a href="#home" class="logo" aria-label="Aarav home"><span class="logo-mark" aria-hidden="true"></span>Aarav</a>
       <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">Menu ☰</button>
       <nav class="nav" id="site-nav" aria-label="Main navigation">
-        <a href="#about">About</a><a href="#games">Games</a><a href="#roblox">Roblox</a><a href="#projects">Experience</a><a href="#socials">Socials</a>
+        <a href="#about">About</a><a href="#games">Games</a><a href="#roblox">Roblox</a><a href="#projects">Experience</a><a href="#interests">Interests</a><a href="#socials">Socials</a>
       </nav>
     </header>
     <div class="aarav-card-wrap" aria-label="Aarav profile card">
@@ -177,6 +186,31 @@
           <article class="project project-kfc"><span class="project-tag">Built by me · Restaurant roleplay</span><h3>KFC</h3><p>A restaurant roleplay game that I built. I own KFC v1–2, which has 7k visits, and I'm developing v3.</p><div class="project-links"><a href="https://discord.gg/v7GWdmR7Jd" target="_blank" rel="noopener noreferrer">Join the Discord <span class="project-arrow" aria-hidden="true">↗</span></a></div></article>
           <article class="project project-headteacher"><span class="project-tag">Worked at · School roleplay</span><h3>Headteacher</h3><p>A school roleplay game where I'm the headteacher. The campus is owned by Kyle, Harley Dyson and Simeon.</p><div class="project-links"><a href="https://discord.gg/4M5FFZ6EZ4" target="_blank" rel="noopener noreferrer">Join the Discord <span class="project-arrow" aria-hidden="true">↗</span></a></div></article>
           <article class="project project-operations"><span class="project-tag">Worked at · Custom airline</span><h3>AVARA</h3><p>I work as Head of Ground Operations at AVARA, a custom airline on Roblox.</p><div class="project-links"><a href="https://discord.gg/V4qswt2qfe" target="_blank" rel="noopener noreferrer">Join AVARA on Discord <span class="project-arrow" aria-hidden="true">↗</span></a></div></article>
+        </div>
+      </section>
+      <section id="interests" class="reveal">
+        <div class="section-head"><div><div class="section-kicker">Beyond the screen</div><h2>Interests &amp; Skills</h2><p class="text">A few things I enjoy and skills I bring to my projects.</p></div></div>
+        <div class="interests-grid">
+          <article class="interest-card">
+            <span class="interest-icon"><i data-lucide="trophy" aria-hidden="true"></i></span>
+            <h3>Cricket</h3>
+            <p>I enjoy cricket, both watching it and playing it.</p>
+          </article>
+          <article class="interest-card">
+            <span class="interest-icon"><i data-lucide="music" aria-hidden="true"></i></span>
+            <h3>Singing &amp; Piano</h3>
+            <p>I enjoy singing and playing piano, using music as a creative outlet.</p>
+          </article>
+          <article class="interest-card">
+            <span class="interest-icon"><i data-lucide="gamepad-2" aria-hidden="true"></i></span>
+            <h3>Gaming</h3>
+            <p>I enjoy gaming, especially Roblox and roleplay experiences.</p>
+          </article>
+          <article class="interest-card">
+            <span class="interest-icon"><i data-lucide="users" aria-hidden="true"></i></span>
+            <h3>HR &amp; Leadership</h3>
+            <p>I'm good at HR, supporting staff, handling applications and helping teams work well together.</p>
+          </article>
         </div>
       </section>
       <section id="socials" class="reveal">
