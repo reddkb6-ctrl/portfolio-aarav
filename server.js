@@ -14,11 +14,13 @@ const AVATAR_TTL = 10 * 60 * 1000;
 const PROFILE_TTL = 10 * 60 * 1000;
 const UPSTREAM_TIMEOUT_MS = 8000;
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const PROFILE_REFRESH_COOLDOWN_MS = 30 * 1000;
 
 let avatarCache = null;
 let avatarAt = 0;
 let profileCache = null;
 let profileAt = 0;
+let profileLastRefreshAt = 0;
 let avatarRequest = null;
 let profileRequest = null;
 
@@ -116,6 +118,54 @@ async function readLimited(response, maxBytes) {
   return Buffer.concat(chunks, total);
 }
 
+function validateAvatarUrl(value) {
+  const parsed = new URL(value);
+  const host = parsed.hostname.toLowerCase();
+  const trustedHost = host === 'rbxcdn.com' || host.endsWith('.rbxcdn.com');
+  if (parsed.protocol !== 'https:' || !trustedHost ||
+      parsed.username || parsed.password ||
+      (parsed.port && parsed.port !== '443')) {
+    throw new Error('Avatar URL failed validation');
+  }
+  return parsed;
+}
+
+async function fetchAvatarImage(value) {
+  let target = validateAvatarUrl(value);
+
+  // Validate every redirect target before following it.
+  for (let redirects = 0; redirects <= 3; redirects += 1) {
+    const response = await fetch(target.href, {
+      headers: { Accept: 'image/png, image/webp, image/jpeg' },
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      redirect: 'manual'
+    });
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (response.body) await response.body.cancel().catch(function () {});
+      if (!location || redirects === 3) {
+        throw new Error('Avatar redirect limit reached');
+      }
+      target = validateAvatarUrl(new URL(location, target.href).href);
+      continue;
+    }
+
+    if (!response.ok) throw new Error('Avatar image request failed');
+    const contentType = (response.headers.get('content-type') || '')
+      .split(';')[0].trim().toLowerCase();
+    if (!['image/png', 'image/webp', 'image/jpeg'].includes(contentType)) {
+      if (response.body) await response.body.cancel().catch(function () {});
+      throw new Error('Avatar response was not a supported image');
+    }
+
+    const buffer = await readLimited(response, MAX_AVATAR_BYTES);
+    return { buffer: buffer, contentType: contentType };
+  }
+
+  throw new Error('Avatar redirect limit reached');
+}
+
 async function getAvatar() {
   if (avatarCache && Date.now() - avatarAt < AVATAR_TTL) {
     return avatarCache;
@@ -132,31 +182,10 @@ async function getAvatar() {
     const imageUrl = meta && meta.data && meta.data[0] && meta.data[0].imageUrl;
     if (!imageUrl) throw new Error('No avatar URL was returned');
 
-    const parsedImageUrl = new URL(imageUrl);
-    const host = parsedImageUrl.hostname.toLowerCase();
-    const trustedHost = host === 'rbxcdn.com' || host.endsWith('.rbxcdn.com');
-    if (parsedImageUrl.protocol !== 'https:' || !trustedHost ||
-        parsedImageUrl.username || parsedImageUrl.password ||
-        (parsedImageUrl.port && parsedImageUrl.port !== '443')) {
-      throw new Error('Avatar URL failed validation');
-    }
-
-    const img = await fetch(parsedImageUrl.href, {
-      headers: { Accept: 'image/png' },
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-      redirect: 'error'
-    });
-
-    if (!img.ok) throw new Error('Avatar image request failed');
-    const imageType = (img.headers.get('content-type') || '').toLowerCase();
-    if (imageType.split(';')[0].trim() !== 'image/png') {
-      throw new Error('Avatar response was not a supported image');
-    }
-
-    const buffer = await readLimited(img, MAX_AVATAR_BYTES);
-    avatarCache = buffer;
+    const avatar = await fetchAvatarImage(imageUrl);
+    avatarCache = avatar;
     avatarAt = Date.now();
-    return buffer;
+    return avatar;
   })();
 
   try {
@@ -166,11 +195,15 @@ async function getAvatar() {
   }
 }
 
-async function getProfile() {
-  if (profileCache && Date.now() - profileAt < PROFILE_TTL) {
+async function getProfile(forceRefresh) {
+  if (profileCache && Date.now() - profileAt < PROFILE_TTL && !forceRefresh) {
+    return profileCache;
+  }
+  if (forceRefresh && profileCache && Date.now() - profileLastRefreshAt < PROFILE_REFRESH_COOLDOWN_MS) {
     return profileCache;
   }
   if (profileRequest) return profileRequest;
+  if (forceRefresh) profileLastRefreshAt = Date.now();
 
   profileRequest = (async function () {
     const results = await Promise.allSettled([
@@ -215,9 +248,11 @@ const server = http.createServer(async function (req, res) {
     });
   }
 
+  let requestUrl;
   let pathname;
   try {
-    pathname = new URL(req.url || '/', 'http://localhost').pathname;
+    requestUrl = new URL(req.url || '/', 'http://localhost');
+    pathname = requestUrl.pathname;
   } catch (_) {
     return send(req, res, 400, 'Bad request', 'text/plain; charset=utf-8', {
       'Cache-Control': 'no-store'
@@ -246,8 +281,8 @@ const server = http.createServer(async function (req, res) {
 
   if (pathname === '/avatar.png') {
     try {
-      const buffer = await getAvatar();
-      return send(req, res, 200, buffer, 'image/png', {
+      const avatar = await getAvatar();
+      return send(req, res, 200, avatar.buffer, avatar.contentType, {
         'Cache-Control': 'public, max-age=600'
       });
     } catch (err) {
@@ -261,9 +296,10 @@ const server = http.createServer(async function (req, res) {
 
   if (pathname === '/api/roblox') {
     try {
-      const data = await getProfile();
+      const forceRefresh = requestUrl.searchParams.get('refresh') === '1';
+      const data = await getProfile(forceRefresh);
       return send(req, res, 200, JSON.stringify(data), 'application/json; charset=utf-8', {
-        'Cache-Control': 'public, max-age=300'
+        'Cache-Control': forceRefresh ? 'no-store' : 'public, max-age=300'
       });
     } catch (err) {
       console.error('Roblox profile request failed:', err && err.name ? err.name : 'Error');
