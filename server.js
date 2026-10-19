@@ -206,16 +206,113 @@ async function readJsonBody(req, maxBytes) {
   }
 }
 
-async function readReviews() {
-  try {
-    const raw = await fs.promises.readFile(REVIEW_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) throw new Error('Review storage has an invalid format.');
-    return parsed;
-  } catch (error) {
-    if (error && error.code === 'ENOENT') return [];
+function getSupabaseConfig() {
+  const baseUrl = String(process.env.SUPABASE_URL || '').trim().replace(/\/$/, '');
+  const secretKey = String(process.env.SUPABASE_SECRET_KEY || '').trim();
+  if (!baseUrl || !secretKey) {
+    const error = new Error('Persistent database is not configured.');
+    error.code = 'SUPABASE_NOT_CONFIGURED';
     throw error;
   }
+  let parsed;
+  try { parsed = new URL(baseUrl); } catch (_) {}
+  if (!parsed || parsed.protocol !== 'https:' || !parsed.hostname.endsWith('.supabase.co')) {
+    const error = new Error('Database configuration is invalid.');
+    error.code = 'SUPABASE_CONFIG_INVALID';
+    throw error;
+  }
+  return { baseUrl: baseUrl, secretKey: secretKey };
+}
+
+async function supabaseRequest(table, options) {
+  const config = getSupabaseConfig();
+  const settings = options || {};
+  const response = await fetch(config.baseUrl + '/rest/v1/' + table + (settings.query || ''), {
+    method: settings.method || 'GET',
+    headers: Object.assign({
+      apikey: config.secretKey,
+      Authorization: 'Bearer ' + config.secretKey,
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    }, settings.prefer ? { Prefer: settings.prefer } : {}),
+    body: settings.body === undefined ? undefined : JSON.stringify(settings.body),
+    signal: AbortSignal.timeout(8000)
+  });
+  if (!response.ok) {
+    const error = new Error('Database request failed with status ' + response.status + '.');
+    error.code = 'SUPABASE_REQUEST_FAILED';
+    error.statusCode = response.status;
+    throw error;
+  }
+  if (response.status === 204) return null;
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
+function reviewFromDatabase(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    rating: Number(row.rating),
+    comment: row.comment || '',
+    createdAt: row.created_at,
+    hidden: row.hidden === true
+  };
+}
+
+function reviewToDatabase(review) {
+  return {
+    id: review.id,
+    name: review.name,
+    rating: review.rating,
+    comment: review.comment || '',
+    created_at: review.createdAt,
+    hidden: review.hidden === true
+  };
+}
+
+async function readReviews() {
+  const rows = await supabaseRequest('reviews', {
+    query: '?select=id,name,rating,comment,created_at,hidden&order=created_at.desc&limit=' + MAX_STORED_REVIEWS
+  });
+  if (!Array.isArray(rows)) throw new Error('Database returned an invalid review list.');
+  if (rows.length) return rows.map(reviewFromDatabase);
+
+  // Migrate the old file store once if the file still exists and the database is empty.
+  try {
+    const raw = await fs.promises.readFile(REVIEW_FILE, 'utf8');
+    const legacy = JSON.parse(raw);
+    if (Array.isArray(legacy) && legacy.length) {
+      const safeLegacy = legacy.slice(0, MAX_STORED_REVIEWS).filter(function (review) {
+        return review && typeof review.id === 'string' && /^[a-f0-9]{16}$/.test(review.id) &&
+          typeof review.name === 'string' && Number.isInteger(Number(review.rating)) &&
+          Number(review.rating) >= 1 && Number(review.rating) <= 5;
+      }).map(function (review) {
+        return reviewToDatabase({
+          id: review.id,
+          name: review.name.slice(0, 80),
+          rating: Number(review.rating),
+          comment: typeof review.comment === 'string' ? review.comment.slice(0, 2000) : '',
+          createdAt: typeof review.createdAt === 'string' ? review.createdAt : new Date().toISOString(),
+          hidden: review.hidden === true
+        });
+      });
+      if (safeLegacy.length) {
+        await supabaseRequest('reviews', {
+          method: 'POST',
+          prefer: 'resolution=ignore-duplicates,return=minimal',
+          body: safeLegacy
+        });
+        const migrated = await supabaseRequest('reviews', {
+          query: '?select=id,name,rating,comment,created_at,hidden&order=created_at.desc&limit=' + MAX_STORED_REVIEWS
+        });
+        if (Array.isArray(migrated)) return migrated.map(reviewFromDatabase);
+      }
+    }
+  } catch (error) {
+    if (!error || error.code !== 'ENOENT') throw error;
+  }
+  return [];
 }
 
 function defaultSiteContent() {
@@ -226,27 +323,39 @@ function defaultSiteContent() {
 }
 
 async function readSiteContent() {
-  try {
-    const raw = await fs.promises.readFile(SITE_CONTENT_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new Error('Website content storage has an invalid format.');
+  const rows = await supabaseRequest('site_content', {
+    query: '?select=content&id=eq.1&limit=1'
+  });
+  const parsed = Array.isArray(rows) && rows.length ? rows[0].content : null;
+  if (!parsed) {
+    // Preserve existing editor content during the first database-backed request.
+    try {
+      const raw = await fs.promises.readFile(SITE_CONTENT_FILE, 'utf8');
+      const legacy = JSON.parse(raw);
+      const content = normaliseSiteContent(legacy);
+      await supabaseRequest('site_content', {
+        method: 'POST',
+        query: '?on_conflict=id',
+        prefer: 'resolution=ignore-duplicates,return=minimal',
+        body: { id: 1, content: content, updated_at: new Date().toISOString() }
+      });
+      const confirmed = await supabaseRequest('site_content', {
+        query: '?select=content&id=eq.1&limit=1'
+      });
+      if (Array.isArray(confirmed) && confirmed.length && confirmed[0].content) {
+        return normaliseSiteContent(confirmed[0].content);
+      }
+    } catch (error) {
+      if (!error || error.code !== 'ENOENT') throw error;
     }
-    return Object.keys(SITE_CONTENT_SCHEMA).reduce(function (result, key) {
-      const value = parsed[key];
-      const schema = SITE_CONTENT_SCHEMA[key];
-      result[key] = typeof value === 'string' ? value : schema.default;
-      return result;
-    }, {});
-  } catch (error) {
-    if (error && error.code === 'ENOENT') {
-      return Object.keys(SITE_CONTENT_SCHEMA).reduce(function (result, key) {
-        result[key] = SITE_CONTENT_SCHEMA[key].default;
-        return result;
-      }, {});
-    }
-    throw error;
+    return defaultSiteContent();
   }
+  if (typeof parsed !== 'object' || Array.isArray(parsed)) return defaultSiteContent();
+  return Object.keys(SITE_CONTENT_SCHEMA).reduce(function (result, key) {
+    const value = parsed[key];
+    result[key] = typeof value === 'string' ? value : SITE_CONTENT_SCHEMA[key].default;
+    return result;
+  }, {});
 }
 
 function normaliseSiteContent(input) {
@@ -311,19 +420,12 @@ function normaliseSiteContent(input) {
 let siteContentWriteQueue = Promise.resolve();
 function saveSiteContent(content) {
   const operation = siteContentWriteQueue.then(async function () {
-    const directory = path.dirname(SITE_CONTENT_FILE);
-    await fs.promises.mkdir(directory, { recursive: true });
-    const temporaryPath = SITE_CONTENT_FILE + '.' + randomBytes(8).toString('hex') + '.tmp';
-    try {
-      await fs.promises.writeFile(temporaryPath, JSON.stringify(content, null, 2), {
-        encoding: 'utf8',
-        mode: 0o600
-      });
-      await fs.promises.rename(temporaryPath, SITE_CONTENT_FILE);
-    } catch (error) {
-      await fs.promises.unlink(temporaryPath).catch(function () {});
-      throw error;
-    }
+    await supabaseRequest('site_content', {
+      method: 'POST',
+      query: '?on_conflict=id',
+      prefer: 'resolution=merge-duplicates,return=minimal',
+      body: { id: 1, content: content, updated_at: new Date().toISOString() }
+    });
     return content;
   });
   siteContentWriteQueue = operation.catch(function () {});
@@ -336,46 +438,34 @@ function withReviewWriteLock(operation) {
   return result;
 }
 
-async function writeReviewsToDisk(reviews) {
-  const directory = path.dirname(REVIEW_FILE);
-  await fs.promises.mkdir(directory, { recursive: true });
-  const temporaryPath = REVIEW_FILE + '.' + randomBytes(8).toString('hex') + '.tmp';
-  try {
-    await fs.promises.writeFile(temporaryPath, JSON.stringify(reviews, null, 2), {
-      encoding: 'utf8',
-      mode: 0o600
-    });
-    await fs.promises.rename(temporaryPath, REVIEW_FILE);
-  } catch (error) {
-    await fs.promises.unlink(temporaryPath).catch(function () {});
-    throw error;
-  }
-}
-
-function saveReview(review) {
+async function saveReview(review) {
   return withReviewWriteLock(async function () {
-    const reviews = await readReviews();
-    reviews.unshift(review);
-    const retained = reviews.slice(0, MAX_STORED_REVIEWS);
-    await writeReviewsToDisk(retained);
-    return retained;
+    await supabaseRequest('reviews', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: reviewToDatabase(review)
+    });
+    return await readReviews();
   });
 }
 
 function mutateStoredReview(id, action) {
   return withReviewWriteLock(async function () {
-    const reviews = await readReviews();
-    const index = reviews.findIndex(function (review) { return review.id === id; });
-    if (index < 0) return null;
-    let result;
     if (action === 'delete') {
-      result = reviews.splice(index, 1)[0];
-    } else {
-      reviews[index].hidden = action === 'hide';
-      result = reviews[index];
+      const rows = await supabaseRequest('reviews', {
+        method: 'DELETE',
+        query: '?id=eq.' + encodeURIComponent(id),
+        prefer: 'return=representation'
+      });
+      return Array.isArray(rows) && rows.length ? reviewFromDatabase(rows[0]) : null;
     }
-    await writeReviewsToDisk(reviews);
-    return result;
+    const rows = await supabaseRequest('reviews', {
+      method: 'PATCH',
+      query: '?id=eq.' + encodeURIComponent(id),
+      prefer: 'return=representation',
+      body: { hidden: action === 'hide' }
+    });
+    return Array.isArray(rows) && rows.length ? reviewFromDatabase(rows[0]) : null;
   });
 }
 
