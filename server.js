@@ -1013,7 +1013,7 @@ const server = http.createServer(async function (req, res) {
         : null;
       return sendJson(req, res, 200, { reviews: reviews, total: total, average: average });
     } catch (error) {
-      console.error('Reviews could not be read:', error && error.name ? error.name : 'Error');
+      console.error('Reviews could not be read:', error && error.code ? error.code : 'ERROR', error && Number.isInteger(error.statusCode) ? 'HTTP ' + error.statusCode : error && error.name ? error.name : 'Error');
       return sendJson(req, res, 500, { error: 'Reviews are temporarily unavailable.' });
     }
   }
@@ -1061,7 +1061,7 @@ const server = http.createServer(async function (req, res) {
       await saveReview(review);
       return sendJson(req, res, 201, { ok: true, review: review });
     } catch (error) {
-      console.error('Review could not be saved:', error && error.name ? error.name : 'Error');
+      console.error('Review could not be saved:', error && error.code ? error.code : 'ERROR', error && Number.isInteger(error.statusCode) ? 'HTTP ' + error.statusCode : error && error.name ? error.name : 'Error');
       return sendJson(req, res, 500, { error: 'Your review could not be saved right now. Please try again later.' });
     }
   }
