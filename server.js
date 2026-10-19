@@ -227,17 +227,32 @@ function getSupabaseConfig() {
 async function supabaseRequest(table, options) {
   const config = getSupabaseConfig();
   const settings = options || {};
-  const response = await fetch(config.baseUrl + '/rest/v1/' + table + (settings.query || ''), {
-    method: settings.method || 'GET',
-    headers: Object.assign({
-      apikey: config.secretKey,
-      Authorization: 'Bearer ' + config.secretKey,
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
-    }, settings.prefer ? { Prefer: settings.prefer } : {}),
-    body: settings.body === undefined ? undefined : JSON.stringify(settings.body),
-    signal: AbortSignal.timeout(8000)
-  });
+  let response;
+
+  try {
+    response = await fetch(config.baseUrl + '/rest/v1/' + table + (settings.query || ''), {
+      method: settings.method || 'GET',
+      headers: Object.assign({
+        apikey: config.secretKey,
+        Authorization: 'Bearer ' + config.secretKey,
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      }, settings.prefer ? { Prefer: settings.prefer } : {}),
+      body: settings.body === undefined ? undefined : JSON.stringify(settings.body),
+      signal: AbortSignal.timeout(8000)
+    });
+  } catch (error) {
+    const causeCode = error && error.cause && error.cause.code;
+    const causeName = error && error.cause && error.cause.name;
+
+    console.error(
+      'Supabase connection failed:',
+      error && error.name ? error.name : 'UnknownError',
+      causeCode || causeName || 'No underlying cause'
+    );
+
+    throw error;
+  }
   if (!response.ok) {
     const error = new Error('Database request failed with status ' + response.status + '.');
     error.code = 'SUPABASE_REQUEST_FAILED';
