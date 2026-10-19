@@ -234,10 +234,11 @@ async function supabaseRequest(table, options) {
       method: settings.method || 'GET',
       headers: Object.assign({
         apikey: config.secretKey,
-        Authorization: 'Bearer ' + config.secretKey,
         Accept: 'application/json',
         'Content-Type': 'application/json'
-      }, settings.prefer ? { Prefer: settings.prefer } : {}),
+      }, config.secretKey.startsWith('eyJ') ? {
+        Authorization: 'Bearer ' + config.secretKey
+      } : {}, settings.prefer ? { Prefer: settings.prefer } : {}),
       body: settings.body === undefined ? undefined : JSON.stringify(settings.body),
       signal: AbortSignal.timeout(8000)
     });
