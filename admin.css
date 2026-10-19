@@ -15,7 +15,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .gate-brand,.sidebar-brand{display:flex;align-items:center;gap:11px;font-size:1.12rem;font-weight:650;letter-spacing:-.035em}
 .gate-brand{margin-bottom:28px}
 .gate-brand small,.sidebar-brand small{display:block;color:var(--muted-2);font-size:.62rem;font-weight:600;letter-spacing:.16em;margin-top:-2px}
-.brand-mark{width:39px;height:39px;display:grid;place-items:center;border-radius:13px;color:#fff;font-weight:700;font-size:1.2rem;background:linear-gradient(135deg,#ed3651,#8c4de5 72%,#4b8eff);box-shadow:0 10px 28px -13px rgba(103,133,255,.85)}
+.brand-mark{width:39px;height:39px;display:block;object-fit:cover;object-position:center 35%;border-radius:13px;color:#fff;font-weight:700;font-size:1.2rem;background:linear-gradient(135deg,#ed3651,#8c4de5 72%,#4b8eff);box-shadow:0 10px 28px -13px rgba(103,133,255,.85)}
 .gate-card{width:min(100%,430px);padding:35px;border:1px solid var(--line);border-radius:25px;background:linear-gradient(145deg,rgba(21,28,53,.93),rgba(11,15,31,.96));box-shadow:0 32px 90px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.035)}
 .gate-icon{width:46px;height:46px;display:grid;place-items:center;border:1px solid rgba(169,199,255,.2);border-radius:15px;background:linear-gradient(135deg,rgba(232,56,79,.16),rgba(79,140,255,.16));color:#dbe5ff;font-size:1.5rem;margin-bottom:24px}
 .eyebrow{margin:0 0 8px;color:#a9c7ff;font-size:.69rem;font-weight:600;letter-spacing:.17em}

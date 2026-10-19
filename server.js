@@ -1103,6 +1103,7 @@ const server = http.createServer(async function (req, res) {
   }
 
   const assetRoutes = {
+    '/sunset-logo.webp': { file: 'sunset-logo.webp', type: 'image/webp', cache: 'public, max-age=86400' },
     '/reviews.css': { file: 'reviews.css', type: 'text/css; charset=utf-8', cache: 'public, max-age=300' },
     '/reviews.js': { file: 'reviews.js', type: 'text/javascript; charset=utf-8', cache: 'public, max-age=300' },
     '/admin.css': { file: 'admin.css', type: 'text/css; charset=utf-8', cache: 'no-store' },
