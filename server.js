@@ -255,6 +255,26 @@ async function supabaseRequest(table, options) {
     throw error;
   }
   if (!response.ok) {
+    // Log only the upstream status and bounded, non-secret error fields; never log request headers or keys.
+    let upstreamCode = '';
+    let upstreamMessage = '';
+    try {
+      const upstreamBody = await response.json();
+      if (upstreamBody && typeof upstreamBody === 'object') {
+        if (typeof upstreamBody.code === 'string') upstreamCode = upstreamBody.code.slice(0, 80);
+        if (typeof upstreamBody.message === 'string') upstreamMessage = upstreamBody.message
+          .replace(/[\\r\\n\\t]+/g, ' ')
+          .slice(0, 240);
+      }
+    } catch (_) {}
+
+    console.error(
+      'Supabase API request rejected:',
+      'HTTP ' + response.status,
+      upstreamCode || 'no error code',
+      upstreamMessage || 'no error message'
+    );
+
     const error = new Error('Database request failed with status ' + response.status + '.');
     error.code = 'SUPABASE_REQUEST_FAILED';
     error.statusCode = response.status;
