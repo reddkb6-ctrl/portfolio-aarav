@@ -121,14 +121,14 @@
       ]
     },
     {
-      title: 'Experience · Headteacher',
-      description: 'Edit the school-roleplay experience card and its link.',
+      title: 'Experience · Roblox Corporation',
+      description: 'Edit the Roblox corporation experience card and its link.',
       fields: [
-        { key: 'headteacherTag', label: 'Small category label', type: 'text' },
-        { key: 'headteacherTitle', label: 'Card title', type: 'text' },
-        { key: 'headteacherDescription', label: 'Description', type: 'textarea', wide: true },
-        { key: 'headteacherLinkLabel', label: 'Card link label', type: 'text' },
-        { key: 'headteacherUrl', label: 'Card link URL', type: 'url', hint: 'Use a full HTTPS link. Leave blank to hide the card link.', wide: true }
+        { key: 'corporationTag', label: 'Small category label', type: 'text' },
+        { key: 'corporationTitle', label: 'Card title', type: 'text' },
+        { key: 'corporationDescription', label: 'Description', type: 'textarea', wide: true },
+        { key: 'corporationLinkLabel', label: 'Card link label', type: 'text' },
+        { key: 'corporationUrl', label: 'Card link URL', type: 'url', hint: 'Use a full HTTPS link. Leave blank to hide the card link.', wide: true }
       ]
     },
     {
@@ -387,7 +387,7 @@
       robloxKicker: 100, robloxHeading: 100, robloxIntro: 300,
       experienceKicker: 140, experienceHeading: 100, experienceIntro: 300,
       kfcTag: 140, kfcTitle: 100, kfcDescription: 500, kfcLinkLabel: 120,
-      headteacherTag: 140, headteacherTitle: 100, headteacherDescription: 500, headteacherLinkLabel: 120,
+      corporationTag: 140, corporationTitle: 100, corporationDescription: 500, corporationLinkLabel: 120,
       avaraTag: 140, avaraTitle: 100, avaraDescription: 500, avaraLinkLabel: 120,
       interestsKicker: 100, interestsHeading: 100, interestsIntro: 300,
       gamingTitle: 100, gamingDescription: 300, sportsTitle: 100,

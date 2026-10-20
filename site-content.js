@@ -97,7 +97,7 @@
     setText('#projects .section-head h2', content.experienceHeading);
     setText('#projects .section-head .text', content.experienceIntro);
     setProject('kfc', 'kfc', content);
-    setProject('headteacher', 'headteacher', content);
+    setProject('headteacher', 'corporation', content);
     setProject('operations', 'avara', content);
     setLeadingText('#interests .section-head .section-kicker', content.interestsKicker);
     setText('#interests .section-head h2', content.interestsHeading);
